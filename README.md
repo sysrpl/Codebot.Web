@@ -34,12 +34,12 @@ In a console type:
 ```console
 mkdir wwwroot
 echo "Test.Hello, Test" > wwwroot/home.ashx
-echo "Hello World" > wwwroot/home.html
+echo "Hello World!" > wwwroot/home.html
 dotnet add reference ../Codebot.Web/Codebot.Web.csproj
 dotnet run --urls=http://0.0.0.0:5000/
 ```
 
-# Directory and File Structure Explained
+## Directory and File Structure Explained
 
 Using the simple example above you would have the following directory and file structure:
 
@@ -87,7 +87,7 @@ namespace Test
     {
         protected override void EmptyPage()
         {
-            Write("Hello World");
+            Write("Hello World!");
         }
         
         public static void Main(string[] args)
@@ -129,7 +129,7 @@ To alter the title in you class you could add this inside of your ``Hello`` clas
     public override string Title { get => "My Home Page"; }
 ```
 
-This would result in the response ``The title of this page is My Home Page`` begin generated.
+This would result in the response ``The title of this page is My Home Page`` being generated.
 
 Properties templated by curly braces ``{ }`` can be of any type and are not required to be be strings. If you have a ``User`` class with properties like Name, Birthday, and Role, it could be templated like so:
 
@@ -157,3 +157,19 @@ In addition to inserting tempaltes into your pages, you can also use format spec
 ```
 
 If DonatedAmount was ``10157.5`` then the response would include ``We've received a total of $10,157.50!``
+
+## Responding to Web Methods
+
+In addition to using this framework to generate templated responses, it can also be used to respond to web method requests. To create a new web method request simply define a method and adorn it with the ``MethodPage`` attribute:
+
+```csharp
+    [MethodPage("hello")]
+    public void HelloMethod() { Write("Hello World!"); }
+```
+
+If the client then submits a request with a method named ``hello`` it will receive back ``Hello World!``. Here is what a request to our method would look:
+
+```console
+	http://example.com/?method=hello
+```
+## Processing Web Methods Arguments
