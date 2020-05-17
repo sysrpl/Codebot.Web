@@ -63,20 +63,22 @@ Using the simple example above you would have the following directory and file s
 
 In this arrangement ``Codebot.Web folder`` is a sibling of the ``Test`` folder. The ``Codebot.Web`` folder contains a copy of this git repository and the ``Test`` folder contains your website project.
 
-The ``Test/wwwroot`` folder contains the content of your website including any static files and subfolder you want to serve. Whenever a client web browser requests a page or resource the web server will look for those resources starting in the ``wwwroot`` folder.
+The ``Test/wwwroot`` folder contains the content of your website including any static files and subfolders might want to serve. When a client web browser requests a resource the web server will search for them begining in the ``wwwroot`` folder.
 
-Whenever a request is made to a folder this framework will look for a file named ``home.ashx`` and read its contents. The contents of ``home.ashx`` with contain the name of the class used to handle the incomming request. In our case, the name of the class is ``Test.Hello, Test``, where ``Test.Hello`` is the namespace qualified name of the class, and ``, Test`` reference the the assembly name where the class is located.
+If a request is made to a folder the framework will search for a special file named ``home.ashx`` and read its contents. The contents of ``home.ashx`` should contain the name of the class used to handle the incomming request by this framework. In our case, the name of the class is ``Test.Hello, Test``, where ``Test.Hello`` is the namespace qualified name of the class, and ``, Test`` reference the the assembly name where the class is located. This class should derived from BasicHandler or one of its descendants. An instance of that class type will be created by the framework and invoked passing it the current ``HttpContext``.
+
+Using this design of folders containing a ``home.ashx`` file you can easily design a website with one or more varying page handler types.
 
 ## Serving Pages from Your Class
 
-A simple way to serve a web page from your class is to decorate it with ``DefaultPage`` attribute. This will cause the class to look for a file resource starting in the ``wwwroot`` folder that matches your name. In the code example at the top of this document that file resource is ``home.html``.
+A simple way to serve a web page from your handler class is to decorate it with ``DefaultPage`` attribute. This will cause the handler to look for a file resource starting in the ``wwwroot`` folder matching the filename adorned to your attribute. In the code example at the top of this document that file resource is ``home.html``.
 
 ```csharp
     [DefaultPage("home.html")]
     public class Hello : PageHandler
 ```
 
-The ``DefaultPage`` attribute is completely optional. If you wanted to generate the page yourself through code you could write the following:
+It should be noted that the ``DefaultPage`` attribute is completely optional. If you wanted to generate the page yourself through code. You could override the ``EmptyPage`` method and write a response manually using the following:
 
 ```csharp
 using Codebot.Web;
@@ -98,11 +100,11 @@ namespace Test
 }
 ```
 
-This would result in the same response content being sent back to the client, but the ``Hello World`` would be output from your code rather than a file.
+This would result in the same response content being sent back to the client, but the ``Hello World!`` would be output from your code rather than from a file resource.
 
 ## Using Templates
 
-Instead of using your ``DefaultPage`` to serve a static file, it can be used as a template to fill out a response based on properties of your page. To do this simply add ``IsTemplate = true`` to the ``DefaultPage`` attribute decoration. Next put the property name, multiple names for a more complete template, in your default page file.
+Instead of using your ``DefaultPage`` to serve a static file, it might be useful to user as a template. A template fills out a response partially based on properties of your handler object. To use a template  simply add ``IsTemplate = true`` to the ``DefaultPage`` attribute decoration. Next put the property name or multiple names in your default page file to have it act as a template.
 
 ```csharp
     [DefaultPage("home.html", IsTemplate = true)]
@@ -131,7 +133,7 @@ To alter the title in you class you could add this inside of your ``Hello`` clas
 
 This would result in the response ``The title of this page is My Home Page`` being generated.
 
-Properties templated by curly braces ``{ }`` can be of any type and are not required to be be strings. If you have a ``User`` class with properties like Name, Birthday, and Role, it could be templated like so:
+Different handlers can use the same tempalte resulting in different response results. Additionally, properties templated by curly braces ``{ }`` can be of any type and are not required to be be strings. For example if you had a ``User`` class with properties like Name, Birthday, and Role, it could be templated in your file resource like so:
 
 ```html
 <html>
@@ -142,7 +144,7 @@ Properties templated by curly braces ``{ }`` can be of any type and are not requ
 </html>
 ```
 
-Your class would then need to have a property named CurrentUser:
+To make this work your handler would need to have a property named CurrentUser:
 
 ```csharp
     public User CurrentUser { get; private set; }
@@ -150,13 +152,13 @@ Your class would then need to have a property named CurrentUser:
 
 ### Formatting Templates
 
-In addition to inserting tempaltes into your pages, you can also use format specifiers to control how those properties are formatted. For example if you have a property called ``DontatedAmount`` of type ``double`` it could be formatted like so:
+In addition to inserting tempaltes into your pages, you can also use format specifiers to control how those properties are formatted. For example if you have a property on your handler called ``DontatedAmount`` of type ``double`` it could be formatted like so:
 
 ```html
 	<p>We've received a total of {DonatedAmount:C2}!</p>
 ```
 
-If DonatedAmount was ``10157.5`` then the response would include ``We've received a total of $10,157.50!``
+And if DonatedAmount was ``10157.5`` then the response would include ``We've received a total of $10,157.50!``
 
 ## Responding to Web Methods
 
@@ -172,4 +174,47 @@ If the client then submits a request with a method named ``hello`` it will recei
 ```console
 	http://example.com/?method=hello
 ```
-## Processing Web Methods Arguments
+### Processing Web Methods Arguments
+
+In the web method example above we simply returned some static text. A dynamic result can be produced using arguments from a ``GET`` or ``POST`` request, which typically might orginate from a ``<form>`` element on your page. To use those arguments you can use any number of ``Read`` methods. Here is an example:
+
+```csharp
+    [MethodPage("purchase")]
+    public void PurchaseMethod()
+    {
+      string userId = ReadInt("userid");
+      string product = ReadString("item");
+      int quantity = ReadInt("qty");
+      DateTime deliverOn = Read<DateTime>("deliveryDate"); 
+      var json = SumbitOrder(product, quantity, deliverOn);
+      ContentType = "text/json";
+      Write(json);
+    }
+```
+
+Note the various ``Read`` methods at your disposal. Also note that a response in generated in json format using whatever backend technology you desire. In the example above ``SumbitOrder`` supposably does some work and returns json text. However you want to take action on a web method request is up to you. This framework just provides a simple way to accept those requests.
+
+The invoker of our ``PurchaseMethod`` might come from a web page using a form element like so:
+
+```html
+	<form action="?method=purchase" method="POST">
+	  <input type="text" name="userid">
+	  <input type="text" name="item">
+	  <input type="text" name="qty">
+	  <input type="text" name="deliveryDate">
+	  <input type="submit">
+	</form>
+```
+
+If you wanted to invoke our purchase method example without using a ``<form>`` element but through JavaScript instead you might write the following:
+
+```html
+    let data = new FormData();
+    data.append("userid", 1);
+    data.append("item", "bananas");
+    data.append("qty", "12");
+    data.append("deliveryDate", "1/15/2020");
+    let request = new XMLHttpRequest();
+    request.open("POST", "?method=purchase");
+    request.send(data);
+````
