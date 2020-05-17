@@ -1,6 +1,6 @@
 # Codebot.Web
 
-A simple framework to create websites usign ASP.NET core. To create a new website simply write this code:
+A simple framework to create websites using ASP.NET core. To create a new website simply write this code:
 
 In Test.csproj place:
 
