@@ -1,25 +1,77 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
-using System.IO;
 
 namespace Codebot.Web
 {
+    /// <summary>
+    /// The WebSite class is used to run the web server
+    /// </summary>
     public sealed class Website
     {
-        private async Task ProcessRequest(HttpContext ctx, Func<Task> next)
+        static readonly object locker = new object();
+        static readonly Dictionary<string, DateTime> fileDates = new Dictionary<string, DateTime>();
+        static readonly Dictionary<string, string> fileContent = new Dictionary<string, string>();
+
+        /// <summary>
+        /// HandlerType contains "home.ashx" but it can be adjusted to any value
+        /// you want
+        /// </summary>
+        public static string HandlerType { get; set; }
+
+        static Website()
+        {
+            HandlerType = "home.ashx";
+        }
+
+        /// <summary>
+        /// Read from files by keeping a cached copy of their content
+        /// </summary>
+        static string FileContent(string fileName)
+        {
+            lock (locker)
+            {
+                if (File.Exists(fileName))
+                {
+                    string content;
+                    var a = fileDates[fileName];
+                    var b = File.GetLastWriteTimeUtc(fileName);
+                    if (a != b)
+                    {
+                        fileDates[fileName] = b;
+                        content = File.ReadAllText(fileName).Trim();
+                        fileContent[fileName] = content;
+                    }
+                    else
+                        content = fileContent[fileName];
+                    return content;
+                }
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Look for a home.ashx and try to convert it into a BasicHandler,
+        /// otherwise serve static files. We also reject attempts to read from
+        /// parent folders 
+        /// </summary>
+        async Task ProcessRequest(HttpContext ctx, Func<Task> next)
         {
             var handled = false;
             var s = BasicHandler.MapPath(ctx.Request.Path.Value);
             if (Directory.Exists(s))
             {
-                s = Path.Combine(s, "home.ashx");
-                if (File.Exists(s))
+                if (s.Contains(".."))
+                    s = string.Empty;
+                else
+                    s = FileContent(Path.Combine(s, HandlerType));
+                if (s.Length > 0)
                 {
-                    s = File.ReadAllText(s).Trim();
                     var t = Type.GetType(s);
                     if (t != null)
                     {
@@ -35,6 +87,10 @@ namespace Codebot.Web
                 await next();
         }
 
+        /// <summary>
+        /// Before processing request we have a chance to modify the app
+        /// </summary>
+        /// <remarks>We may want to set server limits here such as max request size</remarks>
         public void Configure(IApplicationBuilder app)
         {
             app.UseStaticFiles();

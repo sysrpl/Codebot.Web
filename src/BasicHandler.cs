@@ -12,6 +12,10 @@ using Microsoft.AspNetCore.Http.Extensions;
 
 namespace Codebot.Web
 {
+    /// <summary>
+    /// BasicHandler performs evertyhing you need to handle a response. You
+    /// only need to override Run into to make your derived class process requests
+    /// </summary>
     public abstract class BasicHandler
     {
         public delegate string WriteConverter(object item);
@@ -546,7 +550,7 @@ namespace Codebot.Web
         /// <param name="fileName">The file to read</param>
         /// <param name="changed">A out bool indicating if the file has changed</param>
         /// <returns>Returns the exact contents of a file without sustitues</returns>
-        public string IncludeReadDirect(string fileName, out bool changed)
+        public static string IncludeReadDirect(string fileName, out bool changed)
         {
             string data = string.Empty;
             fileName = MapPath(fileName);
