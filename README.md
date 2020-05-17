@@ -172,7 +172,7 @@ In addition to using this framework to generate templated responses, it can also
 If the client then submits a request with a method named ``hello`` it will receive back ``Hello World!``. Here is what a request to our method would look:
 
 ```console
-	http://example.com/?method=hello
+  http://example.com/?method=hello
 ```
 ### Processing Web Methods Arguments
 
@@ -197,13 +197,13 @@ Note the various ``Read`` methods at your disposal. Also note that a response in
 The invoker of our ``PurchaseMethod`` might come from a web page using a form element like so:
 
 ```html
-	<form action="?method=purchase" method="POST">
-	  <input type="text" name="userid">
-	  <input type="text" name="item">
-	  <input type="text" name="qty">
-	  <input type="text" name="deliveryDate">
-	  <input type="submit">
-	</form>
+  <form action="?method=purchase" method="POST">
+    <input type="text" name="userid">
+    <input type="text" name="item">
+    <input type="text" name="qty">
+    <input type="text" name="deliveryDate">
+    <input type="submit">
+  </form>
 ```
 
 If you wanted to invoke our purchase method example without using a ``<form>`` element but through JavaScript instead you might write the following:
