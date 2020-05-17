@@ -29,9 +29,9 @@ namespace Test
 }
 ```
 
-In a terminal type:
+In a console type:
 
-```
+```console
 mkdir wwwroot
 echo "Test.Hello, Test" > wwwroot/home.ashx
 echo "Hello World" > wwwroot/home.html
