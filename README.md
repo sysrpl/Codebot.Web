@@ -208,7 +208,7 @@ The invoker of our ``PurchaseMethod`` might come from a web page using a form el
 
 If you wanted to invoke our purchase method example without using a ``<form>`` element but through JavaScript instead you might write the following:
 
-```html
+```javascript
     let data = new FormData();
     data.append("userid", 1);
     data.append("item", "bananas");
