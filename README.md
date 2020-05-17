@@ -138,8 +138,8 @@ Different handlers can use the same tempalte resulting in different response res
 ```html
 <html>
   <body>
-	<h1>Welcome {CurrentUser.Name} of the {CurrentUser.Role} group!</h1>
-	<p>Your birthday is on {CurrentUser.Birthday}!</p>
+    <h1>Welcome {CurrentUser.Name} of the {CurrentUser.Role} group!</h1>
+    <p>Your birthday is on {CurrentUser.Birthday}!</p>
   </body>
 </html>
 ```
@@ -155,7 +155,7 @@ To make this work your handler would need to have a property named CurrentUser:
 In addition to inserting tempaltes into your pages, you can also use format specifiers to control how those properties are formatted. For example if you have a property on your handler called ``DontatedAmount`` of type ``double`` it could be formatted like so:
 
 ```html
-	<p>We've received a total of {DonatedAmount:C2}!</p>
+    <p>We've received a total of {DonatedAmount:C2}!</p>
 ```
 
 And if DonatedAmount was ``10157.5`` then the response would include ``We've received a total of $10,157.50!``
