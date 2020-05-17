@@ -218,3 +218,48 @@ If you wanted to invoke our purchase method example without using a ``<form>`` e
     request.open("POST", "?method=purchase");
     request.send(data);
 ````
+## Other Examples
+
+Here are a few other examples of tasks which cna be accomplished using this framework.
+
+Sending a file to the client based on some criteria:
+
+```csharp
+    [MethodPage("download")]
+    public void DownloadMethod()
+    {
+        string fileName = MapPath("../private/" + Read("filename"));
+        if (FileExists(fileName) && UserAuthorized)
+          SendAttachment(fileName);
+        else
+          Redirect("/unauthorized");
+    }
+```
+
+Serving different templates based on some state of your website:
+
+```csharp
+    public override void EmptyPage()
+    {
+		if (StoreIsOpened)
+		  // If we are opened include the storefront and format it as a template
+          Include("/templates/storefront.html", true);
+        else          
+          // Otherwise send the static we're closed page
+          Include("/templates/wereclosed.html");
+    }
+```
+
+Handling json data assuming the entire request body is a json object:
+
+```csharp
+    [MethodPage("search")]
+    public void SearchMethod()
+    {
+        var criteria = JsonSerializer.Deserialize<SearchCriteria>(ReadBody());
+        var results = PerformSearch(criteria);
+        ContentType = 'text/json';
+        Write(JsonSerializer.Serialize(results));
+    }
+```
+

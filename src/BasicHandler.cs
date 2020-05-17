@@ -315,6 +315,15 @@ namespace Codebot.Web
         }
 
         /// <summary>
+        /// Reads the entire body as text
+        /// </summary>
+        public string ReadBody()
+        {
+            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+                return reader.ReadToEnd();
+        }
+
+        /// <summary>
         /// Writes text to the response
         /// </summary>
         public void Write(string s)
