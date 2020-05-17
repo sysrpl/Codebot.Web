@@ -44,7 +44,6 @@ namespace Codebot.Web
         /// <summary>
         /// This is the main entry point for this framework
         /// </summary>
-        /// <param name="args">Arguments.</param>
         public static void Run(string[] args)
         {
             var host = Host

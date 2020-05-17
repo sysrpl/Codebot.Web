@@ -28,7 +28,8 @@ namespace Codebot.Web
 
         private void InvokeDefaultPage()
         {
-            /* var logged = GetType().GetCustomAttribute<LoggedAttribute>(true);
+            /* For now logging and user authetication have not been ported over
+            var logged = GetType().GetCustomAttribute<LoggedAttribute>(true);
             if (logged != null)
                 Log.Add(this);
             if ((!IsAuthenticated && InvokePageType<LoginPageAttribute>()) || InvokePageType<DefaultPageAttribute>())
