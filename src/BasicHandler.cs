@@ -247,7 +247,7 @@ namespace Codebot.Web
         {
             string s = string.Empty;
             if (IsQuery)
-                s =  Context.Request.Query[key];
+                s = Context.Request.Query[key];
             if (String.IsNullOrEmpty(s) && IsForm)
                 s = Context.Request.Form[key];
             s = String.IsNullOrEmpty(s) ? String.Empty : s.Trim();
@@ -773,24 +773,12 @@ namespace Codebot.Web
         /// <summary>
         /// Gets the title of the response
         /// </summary>
-        public virtual string Title
-        {
-            get
-            {
-                return "Blank";
-            }
-        }
+        public virtual string Title { get => "Blank"; }
 
         /// <summary>
         /// Gets the content of the response
         /// </summary>
-        public virtual string Content
-        {
-            get
-            {
-                return "Blank";
-            }
-        }
+        public virtual string Content { get => "Blank"; }
 
         /// <summary>
         /// Run is invoked by the Render() method
