@@ -241,8 +241,8 @@ Serving different templates based on some state of your website:
 ```csharp
     public override void EmptyPage()
     {
-		if (StoreIsOpened)
-		  // If we are opened include the storefront and format it as a template
+        if (StoreIsOpened)
+          // If we are opened include the storefront and format it as a template
           Include("/templates/storefront.html", true);
         else          
           // Otherwise send the static we're closed page
