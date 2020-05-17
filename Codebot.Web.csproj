@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>  
+  
+  <ItemGroup>
+    <None Remove="bin\Debug\netcoreapp3.1\Codebot.Web.deps.json" />
+    <None Remove="bin\Debug\netcoreapp3.1\Codebot.Web.dll" />
+    <None Remove="bin\Debug\netcoreapp3.1\Codebot.Web.pdb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Codebot.Web.csproj" />
+    <None Include="obj\Codebot.Web.csproj.nuget.g.targets" />
+    <None Include="obj\Codebot.Web.csproj.nuget.dgspec.json" />
+    <None Include="obj\Codebot.Web.csproj.nuget.cache" />
+    <None Include="obj\project.nuget.cache" />
+    <None Include="obj\project.assets.json" />
+    <None Include="obj\Codebot.Web.csproj.nuget.g.props" />
+    <None Include="obj\Debug\netcoreapp3.1\Codebot.Web.csprojAssemblyReference.cache" />
+    <None Include="obj\Debug\netcoreapp3.1\Codebot.Web.csproj.CoreCompileInputs.cache" />
+    <None Include="obj\Debug\netcoreapp3.1\Codebot.Web.dll" />
+    <None Include="obj\Debug\netcoreapp3.1\Codebot.Web.assets.cache" />
+    <None Include="obj\Debug\netcoreapp3.1\Codebot.Web.AssemblyInfoInputs.cache" />
+    <None Include="obj\Debug\netcoreapp3.1\Codebot.Web.csproj.FileListAbsolute.txt" />
+    <None Include="obj\Debug\netcoreapp3.1\Codebot.Web.pdb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="obj\Debug\netcoreapp3.1\Codebot.Web.AssemblyInfo.cs" />
+  </ItemGroup>
+</Project>
