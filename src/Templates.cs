@@ -2,7 +2,7 @@
 {
     public class Templates
     {
-        public static string TemplateFolder = "../templates/";
+        public static string TemplateFolder = "/templates/";
         public static string TemplateExtension = ".template";
 
         public delegate string TemplateLoad(string fileName);

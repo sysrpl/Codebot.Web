@@ -731,7 +731,7 @@ namespace Codebot.Web
 
         /// <summary>
         /// Gets the name of the class
-        /// </https://summary>
+        /// </summary>
         public string PathName
         {
             get
@@ -783,7 +783,7 @@ namespace Codebot.Web
 
         /// <summary>
         /// Gets the content of the response
-        /// </https://summary>
+        /// </summary>
         public virtual string Content
         {
             get
@@ -791,13 +791,14 @@ namespace Codebot.Web
                 return "Blank";
             }
         }
+
         /// <summary>
         /// Run is invoked by the Render() method
         /// </summary>
         protected abstract void Run();
 
         /// <summary>
-        /// Render is invoked by IHttpHandler.ProcessRequest() and in turn invokes Run() 
+        /// Render is invoked by ProcessRequest() and in turn invokes Run() 
         /// </summary>
         protected virtual void Render()
         {
