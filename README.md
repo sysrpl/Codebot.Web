@@ -65,9 +65,9 @@ In this arrangement ``Codebot.Web folder`` is a sibling of the ``Test`` folder. 
 
 The ``Test/wwwroot`` folder contains the content of your website including any static files and subfolders might want to serve. When a client web browser requests a resource the web server will search for them begining in the ``wwwroot`` folder.
 
-If a request is made to a folder the framework will search for a special file named ``home.ashx`` and read its contents. The contents of ``home.ashx`` should contain the name of the class used to handle the incomming request by this framework. In our case, the name of the class is ``Test.Hello, Test``, where ``Test.Hello`` is the namespace qualified name of the class, and ``, Test`` reference the the assembly name where the class is located. This class should derived from BasicHandler or one of its descendants. An instance of that class type will be created by the framework and invoked passing it the current ``HttpContext``.
+If a request is made to a folder the framework will search for a special file named ``home.ashx`` then read its contents. The contents of ``home.ashx`` should contain the name of the handler class which will be used to handle the incomming request. In our case, the name of the handler class is ``Test.Hello, Test``, where ``Test.Hello`` is the namespace qualified name of the handler class, and ``, Test`` reference the the assembly name where the handler class is located. This handler class should derived from BasicHandler or one of its descendants. An instance of that class handler type will be created by the framework and invoked with the current ``HttpContext``.
 
-Using this design of folders containing a ``home.ashx`` file you can easily design a website with one or more varying page handler types.
+Using this pattern of folders containing a ``home.ashx`` file its possible to design a website with one or more varying page handler types with each folder containing a ``home.ashx`` file designating which handler class procceses requests for that specific folder.
 
 ## Serving Pages from Your Class
 
