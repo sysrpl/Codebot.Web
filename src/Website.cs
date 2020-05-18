@@ -39,7 +39,11 @@ namespace Codebot.Web
                 if (File.Exists(fileName))
                 {
                     string content;
-                    var a = fileDates[fileName];
+                    var a = DateTime.UnixEpoch;
+                    if (fileDates.ContainsKey(fileName))
+                        a = fileDates[fileName];
+                    else
+                        fileDates.Add(fileName, a);
                     var b = File.GetLastWriteTimeUtc(fileName);
                     if (a != b)
                     {
