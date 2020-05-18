@@ -104,14 +104,14 @@ This would result in the same response content being sent back to the client, bu
 
 ## Using Templates
 
-Instead of using your ``DefaultPage`` to serve a static file, it might be useful to user as a template. A template fills out a response partially based on properties of your handler object. To use a template  simply add ``IsTemplate = true`` to the ``DefaultPage`` attribute decoration. Next put the property name or multiple names in your default page file to have it act as a template.
+Instead of using your ``DefaultPage`` to serve a static file, it might be useful to use it as a template file. A template file can fill out a response using properties of your handler object. To use a template file simply add ``IsTemplate = true`` to the ``DefaultPage`` attribute decoration. Thne put a property name or multiple property names in your default page file and it act as a template.
 
 ```csharp
     [DefaultPage("home.html", IsTemplate = true)]
     public class Hello : PageHandler
 ```
 
-And in ``home.html``:
+And in your ``home.html`` default page file:
 
 ```html
 <html>
@@ -119,21 +119,21 @@ And in ``home.html``:
 </html>
 ```
 
-The template enging will see curly braces ``{ }`` with an identifier in it and substitute it with a property of your object. In the example above ``The title of this page is {Title}`` would be substituted with ``The title of this page is Blank`` because the base class of PageHandler defines ``Title`` like so: 
+The templating enging will recognize the curly braces ``{ }`` and attempt to substitute its contents using a property of your object. In the example above ``The title of this page is {Title}`` would be substituted with ``The title of this page is Blank`` because the base class of PageHandler defines this ``Title`` property:
 
 ```csharp
     public virtual string Title { get => "Blank"; }
 ```
 
-To alter the title in you class you could add this inside of your ``Hello`` class:
+To alter the title in, your ``Hello`` handler class you could add:
 
 ```csharp
     public override string Title { get => "My Home Page"; }
 ```
 
-This would result in the response ``The title of this page is My Home Page`` being generated.
+This would result in the response ``The title of this page is My Home Page`` being generated be templating engine.
 
-Different handlers can use the same tempalte resulting in different response results. Additionally, properties templated by curly braces ``{ }`` can be of any type and are not required to be be strings. For example if you had a ``User`` class with properties like Name, Birthday, and Role, it could be templated in your file resource like so:
+Different handler classes can use the same template resulting in different response results. Additionally, properties templated by curly braces ``{ }`` can be of any type. They are not required to be strings. For example if you had a ``User`` class with properties like Name, Birthday, and Role, it could be templated in your file resource like so:
 
 ```html
 <html>
@@ -144,7 +144,7 @@ Different handlers can use the same tempalte resulting in different response res
 </html>
 ```
 
-To make this work your handler would need to have a property named CurrentUser:
+To make this work your handler class would need to have a property named CurrentUser:
 
 ```csharp
     public User CurrentUser { get; private set; }
@@ -152,7 +152,7 @@ To make this work your handler would need to have a property named CurrentUser:
 
 ### Formatting Templates
 
-In addition to inserting tempaltes into your pages, you can also use format specifiers to control how those properties are formatted. For example if you have a property on your handler called ``DontatedAmount`` of type ``double`` it could be formatted like so:
+In addition to inserting templates into your page files, you can also use format specifiers to control how those properties are converted. For example if you have a property on your handler class called ``DontatedAmount`` of type ``double`` it could be formatted like so:
 
 ```html
     <p>We've received a total of {DonatedAmount:C2}!</p>
