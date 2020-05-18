@@ -183,10 +183,10 @@ In the web method example above we simply returned some static text. A dynamic r
     public void PurchaseMethod()
     {
       string userId = ReadInt("userid");
-      string productId = ReadString("item");
+      string product = ReadString("item");
       int count = ReadInt("qty");
       DateTime deliveryDate = Read<DateTime>("deliveryDate"); 
-      var json = SumbitOrder(userId, productId, count, deliveryDate);
+      var json = SumbitOrder(userId, product, count, deliveryDate);
       ContentType = "text/json";
       Write(json);
     }
