@@ -220,7 +220,7 @@ If you wanted to invoke our purchase method example without using a ``<form>`` e
 ````
 ## Other Examples
 
-Here are a few other examples of tasks which cna be accomplished using this framework.
+Here are a few other examples of tasks which can be accomplished using this framework.
 
 Sending a file to the client based on some criteria:
 
