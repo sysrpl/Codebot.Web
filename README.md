@@ -104,7 +104,7 @@ This would result in the same response content being sent back to the client, bu
 
 ## Using Templates
 
-Instead of using your ``DefaultPage`` to serve a static file, it might be useful to use it as a template file. A template file can fill out a response using properties of your handler object. To use a template file simply add ``IsTemplate = true`` to the ``DefaultPage`` attribute decoration. Thne put a property name or multiple property names in your default page file and it act as a template.
+Instead of using your ``DefaultPage`` to serve a static file, it might be useful to use it as a template file. A template file can fill out a response using properties of your handler class. To use a template file simply add ``IsTemplate = true`` to the ``DefaultPage`` attribute decoration. Then put a property name or multiple property names in your default page file and it will act as a template.
 
 ```csharp
     [DefaultPage("home.html", IsTemplate = true)]
