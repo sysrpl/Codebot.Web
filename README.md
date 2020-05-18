@@ -119,13 +119,13 @@ And in your ``home.html`` default page file:
 </html>
 ```
 
-The templating enging will recognize the curly braces ``{ }`` and attempt to substitute its contents using a property of your object. In the example above ``The title of this page is {Title}`` would be substituted with ``The title of this page is Blank`` because the base class of PageHandler defines this ``Title`` property:
+The templating enging will recognize the curly braces ``{ }`` and attempt to substitute its contents using a property of your object. In the example above ``The title of this page is {Title}`` would be substituted with ``The title of this page is Blank``. This is because the base class of PageHandler defines a ``Title`` property like so:
 
 ```csharp
     public virtual string Title { get => "Blank"; }
 ```
 
-To alter the title in, your ``Hello`` handler class you could add:
+To alter the title in your ``Hello`` handler class you could add:
 
 ```csharp
     public override string Title { get => "My Home Page"; }
