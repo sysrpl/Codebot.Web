@@ -11,7 +11,7 @@ using Microsoft.Extensions.Hosting;
 namespace Codebot.Web
 {
     /// <summary>
-    /// The WebSite class is used to run the web server
+    /// The Website class is used to run the web server
     /// </summary>
     public sealed class Website
     {
