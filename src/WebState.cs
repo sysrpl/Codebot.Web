@@ -34,8 +34,19 @@ namespace Codebot.Web
             Context.Items.Add(key, handler);
         }
 
+        /// <summary>
+        /// The current HttpContext
+        /// </summary>
         public static HttpContext Context { get => accessor.HttpContext; }
+
+        /// <summary>
+        /// The current BasicHandler
+        /// </summary>
         public static BasicHandler Handler { get => Context.Items[key] as BasicHandler; }
+
+        /// <summary>
+        /// The current requested path
+        /// </summary>
         public static string Path { get => Context.Request.Path.Value; }
 
         /// <summary>
