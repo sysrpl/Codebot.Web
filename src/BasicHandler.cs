@@ -22,40 +22,15 @@ namespace Codebot.Web
         public delegate object QuerySectionsFunc(BasicHandler handler);
         public delegate object FindObjectFunc(string key);
 
-        private static readonly string webroot;
         private static readonly Dictionary<string, object> objects;
         private static readonly Dictionary<string, DateTime> includeLog;
         private static readonly Dictionary<string, string> includeData;
-
-        /* NOT WORKING
-        /// <summary>
-        /// The current BasicHandler if any
-        /// </summary>
-        public static BasicHandler Current
-        {
-            get
-            {
-                var h = HttpContext.Current?.CurrentHandler;
-                return h is BasicHandler ? h as BasicHandler : null;
-            }
-        } */
-
-        /// <summary>
-        /// Map a server url to a physical file path
-        /// </summary>
-        public static string MapPath(string path)
-        {
-            if (path.StartsWith("/"))
-                path = path.Substring(1);
-            return string.IsNullOrEmpty(path) ? webroot : Path.Combine(webroot, path);
-        }
 
         /// <summary>
         /// Initialize the BasicHandler class type
         /// </summary>
         static BasicHandler()
         {
-            webroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             objects = new Dictionary<string, object>();
             includeLog = new Dictionary<string, DateTime>();
             includeData = new Dictionary<string, string>();
@@ -532,7 +507,7 @@ namespace Codebot.Web
         /// <param name="fileName">The filename to be mapped</param>
         public bool FileExists(string fileName)
         {
-            return File.Exists(MapPath(fileName));
+            return File.Exists(WebState.MapPath(fileName));
         }
 
         /// <summary>
@@ -541,7 +516,7 @@ namespace Codebot.Web
         /// <param name="folder">The folder to be mapped</param>
         public bool FolderExists(string folder)
         {
-            return Directory.Exists(MapPath(folder));
+            return Directory.Exists(WebState.MapPath(folder));
         }
 
         /// <summary>
@@ -553,7 +528,7 @@ namespace Codebot.Web
         public static string IncludeReadDirect(string fileName, out bool changed)
         {
             string data = string.Empty;
-            fileName = MapPath(fileName);
+            fileName = WebState.MapPath(fileName);
             lock (includeLog)
             {
                 DateTime change = File.GetLastWriteTime(fileName);
@@ -661,7 +636,7 @@ namespace Codebot.Web
         private long SendFileData(string fileName, string contentType, bool attachment)
         {
             if (!File.Exists(fileName))
-                fileName = MapPath(fileName);
+                fileName = WebState.MapPath(fileName);
             Context.Response.Clear();
             Context.Response.ContentType = contentType;
             Context.Response.Headers.Add("Content-Length", new FileInfo(fileName).Length.ToString());

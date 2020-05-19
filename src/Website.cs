@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Codebot.Web
@@ -67,7 +68,7 @@ namespace Codebot.Web
         async Task ProcessRequest(HttpContext ctx, Func<Task> next)
         {
             var handled = false;
-            var s = BasicHandler.MapPath(ctx.Request.Path.Value);
+            var s = WebState.MapPath("");
             if (Directory.Exists(s))
             {
                 if (s.Contains(".."))
@@ -82,6 +83,7 @@ namespace Codebot.Web
                         if (Activator.CreateInstance(t) is BasicHandler b)
                         {
                             handled = true;
+                            WebState.Attach(b);
                             await Task.Run(() => b.ProcessRequest(ctx));
                         }
                     }
@@ -92,11 +94,21 @@ namespace Codebot.Web
         }
 
         /// <summary>
+        /// Request IHttpContextAccessor as a service
+        /// </summary>
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddHttpContextAccessor();
+        }
+
+        /// <summary>
         /// Before processing request we have a chance to modify the app
         /// </summary>
         /// <remarks>We may want to set server limits here such as max request size</remarks>
         public void Configure(IApplicationBuilder app)
         {
+            var state = app.ApplicationServices.GetRequiredService<IHttpContextAccessor>();
+            WebState.Configure(state);
             app.UseStaticFiles();
             app.Use(ProcessRequest);
         }

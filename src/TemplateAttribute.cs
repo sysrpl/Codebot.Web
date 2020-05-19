@@ -33,7 +33,7 @@ namespace Codebot.Web
 
         public static string FileName(string templateName)
         {
-            return BasicHandler.MapPath(TemplateAttribute.TemplateFolder + templateName + TemplateAttribute.TemplateExtension);
+            return WebState.MapPath(TemplateAttribute.TemplateFolder + templateName + TemplateAttribute.TemplateExtension);
         }
     }
 }
