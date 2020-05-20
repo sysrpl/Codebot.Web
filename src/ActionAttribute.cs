@@ -3,16 +3,16 @@
 namespace Codebot.Web
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class MethodPageAttribute : Attribute
+    public class ActionAttribute : Attribute
     {
-        public MethodPageAttribute(string methodName)
+        public ActionAttribute(string actionName)
         {
             ContentType = "text/html; charset=utf-8";
-            MethodName = methodName;
+            ActionName = actionName;
         }
 
         public string ContentType { get; set; }
-        public string MethodName { get; set; }
+        public string ActionName { get; set; }
         public string Allow { get; set; }
         public string Deny { get; set; }
     }

@@ -160,27 +160,27 @@ In addition to inserting templates into your page files, you can also use format
 
 And if DonatedAmount was ``10157.5`` then the response would include ``We've received a total of $10,157.50!``
 
-## Responding to Web Methods
+## Responding to Web Actions
 
-In addition to using this framework to generate templated responses, it can also be used to respond to web method requests. To create a new web method request simply define a method and adorn it with the ``MethodPage`` attribute:
+In addition to using this framework to generate templated responses, it can also be used to respond to web action requests. To create a new web action request simply define a method and adorn it with the ``Action`` attribute:
 
 ```csharp
-    [MethodPage("hello")]
-    public void HelloMethod() { Write("Hello World!"); }
+    [Action("hello")]
+    public void HelloAction() { Write("Hello World!"); }
 ```
 
-If the client then submits a request with a method named ``hello`` it will receive back ``Hello World!``. Here is what a request to our method would look:
+If the client then submits a request with an action named ``hello`` it will receive back ``Hello World!``. Here is what a request to our action would look:
 
 ```console
-  http://example.com/?method=hello
+  http://example.com/?action=hello
 ```
-### Processing Web Methods Arguments
+### Processing Web Action Arguments
 
-In the web method example above we simply returned some static text. A dynamic result can be produced using arguments from a ``GET`` or ``POST`` request, which typically might orginate from a ``<form>`` element on your page. To use those arguments you can use any number of ``Read`` methods. Here is an example:
+In the web action example above we simply returned some static text. A dynamic result can be produced using arguments from a ``GET`` or ``POST`` request, which typically might orginate from a ``<form>`` element on your page. To use those arguments you can use any number of ``Read`` methods. Here is an example:
 
 ```csharp
-    [MethodPage("purchase")]
-    public void PurchaseMethod()
+    [Action("purchase")]
+    public void PurchaseAction()
     {
       string userId = ReadInt("userid");
       string product = ReadString("item");
@@ -192,12 +192,12 @@ In the web method example above we simply returned some static text. A dynamic r
     }
 ```
 
-Note the various ``Read`` methods at your disposal. Also note that a response in generated in json format using whatever backend technology you desire. In the example above ``SumbitOrder`` supposably does some work and returns json text. However you want to take action on a web method request is up to you. This framework just provides a simple way to accept those requests.
+Note the various ``Read`` methods at your disposal. Also note that a response in generated in json format using whatever backend technology you desire. In the example above ``SumbitOrder`` supposably does some work and returns json text. However you want to take action on a web action request is up to you. This framework just provides a simple way to accept those requests.
 
-The invoker of our ``PurchaseMethod`` might come from a web page using a form element like so:
+The invoker of our ``PurchaseAction`` might come from a web page using a form element like so:
 
 ```html
-  <form action="?method=purchase" method="POST">
+  <form action="?action=purchase" method="POST">
     <input type="text" name="userid">
     <input type="text" name="item">
     <input type="text" name="qty">
@@ -206,7 +206,7 @@ The invoker of our ``PurchaseMethod`` might come from a web page using a form el
   </form>
 ```
 
-If you wanted to invoke our purchase method example without using a ``<form>`` element but through JavaScript instead you might write the following:
+If you wanted to invoke our purchase action example without using a ``<form>`` element but through JavaScript instead you might write the following:
 
 ```javascript
     let data = new FormData();
@@ -215,7 +215,7 @@ If you wanted to invoke our purchase method example without using a ``<form>`` e
     data.append("qty", "12");
     data.append("deliveryDate", "1/15/2020");
     let request = new XMLHttpRequest();
-    request.open("POST", "?method=purchase");
+    request.open("POST", "?action=purchase");
     request.send(data);
 ````
 ## Other Examples
@@ -225,8 +225,8 @@ Here are a few other examples of tasks which can be accomplished using this fram
 Sending a file to the client based on some criteria:
 
 ```csharp
-    [MethodPage("download")]
-    public void DownloadMethod()
+    [Action("download")]
+    public void DownloadAction()
     {
         string fileName = MapPath("../private/" + Read("filename"));
         if (FileExists(fileName) && UserAuthorized)
@@ -253,8 +253,8 @@ Serving different templates based on some state of your website:
 Handling json data assuming the entire request body is a json object:
 
 ```csharp
-    [MethodPage("search")]
-    public void SearchMethod()
+    [Action("search")]
+    public void SearchAction()
     {
         var criteria = JsonSerializer.Deserialize<SearchCriteria>(ReadBody());
         var results = PerformSearch(criteria);

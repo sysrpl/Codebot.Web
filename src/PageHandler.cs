@@ -6,24 +6,24 @@ namespace Codebot.Web
     /// <summary>
     /// Page handler is a typically the base class your should derive from 
     /// to handle requests. You may adorn you class with [DefaultPage] or
-    /// its methods with [MethodPage]
+    /// its actions with [Action]
     /// </summary>
     public class PageHandler : BasicHandler
     {
         /// <summary>
-        /// Allow the name of the method parameter to be redefined from its default value
+        /// Allow the name of the action parameter to be redefined from its default value
         /// </summary>
-        protected static string Method { get; set; }
+        protected static string Action { get; set; }
 
         static PageHandler()
         {
-            Method = "method";
+            Action = "action";
         }
 
         /// <summary>
-        /// The signature of a web method
+        /// The signature of a web action
         /// </summary>
-        public delegate void WebMethod();
+        public delegate void WebAction();
 
         /// <summary>
         /// Invoked when no default page is found
@@ -48,7 +48,7 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// If this is not a method page request then check for a default page
+        /// If this is not a action page request then check for a default page
         /// </summary>
         private void InvokeDefaultPage()
         {
@@ -64,39 +64,39 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Invoked when no method is found
+        /// Invoked when no action is found
         /// </summary>
-        protected virtual void EmptyMethod(string methodName)
+        protected virtual void EmptyAction(string actionName)
         {
             InvokeDefaultPage();
         }
 
         /// <summary>
-        /// Provide a chance for desedent to superceed MethodPage rights
+        /// Provide a chance for desedent to superceed ActionPage rights
         /// </summary>
-        protected virtual bool AllowMethod(string methodName)
+        protected virtual bool AllowAction(string actionName)
         {
             return true;
         }
 
         /// <summary>
-        /// The method was denied and you can do something about it here
+        /// The action was denied and you can do something about it here
         /// </summary>
-        protected virtual void OnDeny(string methodName)
+        protected virtual void OnDeny(string actionName)
         {
         }
 
         /// <summary>
-        /// The method was allowed and you can do something about it here
+        /// The action was allowed and you can do something about it here
         /// </summary>
-        protected virtual void OnAllow(string methodName)
+        protected virtual void OnAllow(string actionName)
         {
         }
 
         /// <summary>
-        /// Check the MethodPage for deny rights 
+        /// Check the ActionPage for deny rights 
         /// </summary>
-        private bool Deny(MethodPageAttribute a)
+        private bool Deny(ActionAttribute a)
         {
             var deny = a.Deny;
             if (String.IsNullOrEmpty(deny))
@@ -112,9 +112,9 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Check the MethodPage for allow rights 
+        /// Check the ActionPage for allow rights 
         /// </summary>
-        private bool Allow(MethodPageAttribute a)
+        private bool Allow(ActionAttribute a)
         {
             var allow = a.Allow;
             if (string.IsNullOrEmpty(allow))
@@ -130,43 +130,43 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Attempt to find a matching MethodPage attribute, and verify user rights
+        /// Attempt to find a matching ActionPage attribute, and verify user rights
         /// </summary>
-        private void InvokeMethod(string methodName)
+        private void InvokeAction(string actionName)
         {
-            foreach (var method in GetType().GetMethods())
+            foreach (var action in GetType().GetMethods())
             {
-                var attribute = method.GetCustomAttributes<MethodPageAttribute>(true)
-                    .FirstOrDefault(a => a.MethodName.ToLower() == methodName);
+                var attribute = action.GetCustomAttributes<ActionAttribute>(true)
+                    .FirstOrDefault(a => a.ActionName.ToLower() == actionName);
                 if (attribute != null)
                 {
                     if (Deny(attribute))
-                        OnDeny(methodName);
+                        OnDeny(actionName);
                     else if (Allow(attribute))
                     {
-                        OnAllow(methodName);
+                        OnAllow(actionName);
                         ContentType = attribute.ContentType;
-                        var pageMethod = (WebMethod)Delegate.CreateDelegate(typeof(WebMethod), this, method);
-                        pageMethod();
+                        var pageAction = (WebAction)Delegate.CreateDelegate(typeof(WebAction), this, action);
+                        pageAction();
                     }
                     else
-                        OnDeny(methodName);
+                        OnDeny(actionName);
                     return;
                 }
             }
-            EmptyMethod(methodName);
+            EmptyAction(actionName);
         }
 
         /// <summary>
-        /// Look for a method or invoked the default page
+        /// Look for a action or invoked the default page
         /// </summary>
         protected override void Run()
         {
-            var methodName = Read(Method, "").ToLower();
-            if (string.IsNullOrWhiteSpace(methodName))
+            var actionName = Read(Action, "").ToLower();
+            if (string.IsNullOrWhiteSpace(actionName))
                 InvokeDefaultPage();
-            else if (AllowMethod(methodName))
-                InvokeMethod(methodName);
+            else if (AllowAction(actionName))
+                InvokeAction(actionName);
         }
     }
 }
