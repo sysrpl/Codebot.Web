@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -20,20 +21,9 @@ namespace Codebot.Web
         static readonly Dictionary<string, string> fileContent = new Dictionary<string, string>();
 
         /// <summary>
-        /// HandlerType contains "home.ashx" but it can be adjusted to any value
-        /// you want
-        /// </summary>
-        public static string HandlerType { get; set; }
-
-        static Website()
-        {
-            HandlerType = "home.ashx";
-        }
-
-        /// <summary>
         /// Read from files by keeping a cached copy of their content
         /// </summary>
-        static string FileContent(string fileName)
+        private static string FileContent(string fileName)
         {
             lock (locker)
             {
@@ -58,6 +48,17 @@ namespace Codebot.Web
                 }
                 return string.Empty;
             }
+        }
+
+        /// <summary>
+        /// HandlerType contains "home.dchc" but it can be adjusted to any value
+        /// you want
+        /// </summary>
+        public static string HandlerType { get; private set; }
+
+        static Website()
+        {
+             HandlerType = "home.dchc";
         }
 
         /// <summary>
@@ -107,17 +108,25 @@ namespace Codebot.Web
         /// <remarks>We may want to set server limits here such as max request size</remarks>
         public void Configure(IApplicationBuilder app)
         {
-            var state = app.ApplicationServices.GetRequiredService<IHttpContextAccessor>();
-            WebState.Configure(state);
+            var accessor = app.ApplicationServices.GetRequiredService<IHttpContextAccessor>();
+            WebState.Configure(accessor);
+            if (debug)
+                app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
             app.Use(ProcessRequest);
         }
+
+        /// <summary>
+        /// Debug pages are enabled by adding --debug to Run args
+        /// </summary>
+        private static bool debug;
 
         /// <summary>
         /// This is the main entry point for this framework
         /// </summary>
         public static void Run(string[] args)
         {
+            debug = args.Contains("--debug");
             var host = Host
                 .CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(w => w.UseStartup<Website>());

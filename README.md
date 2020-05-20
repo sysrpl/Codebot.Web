@@ -33,7 +33,7 @@ In a console type:
 
 ```console
 mkdir wwwroot
-echo "Test.Hello, Test" > wwwroot/home.ashx
+echo "Test.Hello, Test" > wwwroot/home.dchc
 echo "Hello World!" > wwwroot/home.html
 dotnet add reference ../Codebot.Web/Codebot.Web.csproj
 dotnet run --urls=http://0.0.0.0:5000/
@@ -56,7 +56,7 @@ Using the simple example above you would have the following directory and file s
    |
    +- wwwroot
       |
-      +- home.ashx
+      +- home.dchc
       |
       +- home.html
 ```
@@ -65,9 +65,9 @@ In this arrangement ``Codebot.Web folder`` is a sibling of the ``Test`` folder. 
 
 The ``Test/wwwroot`` folder contains the content of your website including any static files and subfolders might want to serve. When a client web browser requests a resource the web server will search for them begining in the ``wwwroot`` folder.
 
-If a request is made to a folder the framework will search for a special file named ``home.ashx`` then read its contents. The contents of ``home.ashx`` should contain the name of the handler class which will be used to handle the incomming request. In our case, the name of the handler class is ``Test.Hello, Test``, where ``Test.Hello`` is the namespace qualified name of the handler class, and ``, Test`` reference the the assembly name where the handler class is located. This handler class should derived from BasicHandler or one of its descendants. An instance of that class handler type will be created by the framework and invoked with the current ``HttpContext``.
+If a request is made to a folder the framework will search for a special file named ``home.dchc`` (short for dotnet core handler class) then read its contents. The contents of ``home.dchc`` should contain the name of the handler class which will be used to handle the incomming request. In our case, the name of the handler class is ``Test.Hello, Test``, where ``Test.Hello`` is the namespace qualified name of the handler class, and ``, Test`` reference the the assembly name where the handler class is located. This handler class should derived from BasicHandler or one of its descendants. An instance of that class handler type will be created by the framework and invoked with the current ``HttpContext``.
 
-Using this pattern of folders containing a ``home.ashx`` file its possible to design a website with one or more varying page handler types with each folder containing a ``home.ashx`` file designating which handler class procceses requests for that specific folder.
+Using this pattern of folders containing a ``home.dchc`` file its possible to design a website with one or more varying page handler types with each folder containing a ``home.dchc`` file designating which handler class procceses requests for that specific folder.
 
 ## Serving Pages from Your Class
 

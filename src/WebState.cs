@@ -19,9 +19,9 @@ namespace Codebot.Web
         /// <summary>
         /// Called once at application startup
         /// </summary>
-        public static void Configure(IHttpContextAccessor state)
+        public static void Configure(IHttpContextAccessor accessor)
         {
-            accessor = state;
+            WebState.accessor = accessor;
             key = new object();
             webroot = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         }
