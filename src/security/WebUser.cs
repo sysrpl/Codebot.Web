@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -13,15 +12,8 @@ namespace Codebot.Web
 
 		public static IWebUser Anonymous 
 		{ 
-			get
-			{
-				return anonymous;
-			}
-			set
-			{
-				if (anonymous == null)
-					anonymous = value;
-			}
+			get => anonymous;
+            set { if (anonymous == null) anonymous = value; }
 		}
 
 		private List<string> roles;
@@ -30,8 +22,8 @@ namespace Codebot.Web
 		{
 			Active = true;
 			Data = null;
-			Name = String.Empty;
-			Hash = String.Empty;
+			Name = string.Empty;
+			Hash = string.Empty;
 			roles = new List<string>();
 		}
 
@@ -42,10 +34,7 @@ namespace Codebot.Web
 
 		public string Roles
 		{ 
-			get
-			{
-				return string.Join(",", roles);
-			}
+			get => string.Join(",", roles);
 			set
 			{
 				var values = string.IsNullOrWhiteSpace(value) ? "" : Regex.Replace(value, @"\s+", "").ToLower();
@@ -73,10 +62,7 @@ namespace Codebot.Web
 			return true;
 		}
 
-		public void Logout(IUserSecurity security)
-		{
-			Security.DeleteCredentials(security.Context);
-		}
+		public void Logout(IUserSecurity security) => Security.DeleteCredentials(security.Context);
 
 		public IWebUser Restore(IUserSecurity security, string salt)
 		{
@@ -90,29 +76,14 @@ namespace Codebot.Web
 			return Security.Match(user, salt, credentials) ? user : Anonymous;
 		}
 
-		public override bool IsInRole(string role)
-		{
-			return roles.IndexOf(role.ToLower()) > -1;
-		}
+		public override bool IsInRole(string role) => roles.IndexOf(role.ToLower()) > -1;
 
-		public bool IsAdmin { get { return IsInRole("admin"); } }
+		public bool IsAdmin { get => IsInRole("admin"); }
 
-		public bool IsAnonymous { get { return this == Anonymous; } }
+		public bool IsAnonymous { get => this == Anonymous; }
 
-		public string AuthenticationType
-		{
-			get
-			{
-				return "custom";
-			}
-		}
+		public string AuthenticationType { get => "custom"; }
 
-		public bool IsAuthenticated
-		{
-			get
-			{
-				return this != Anonymous;
-			}
-		}
+		public bool IsAuthenticated { get => this != Anonymous; }
 	}
 }

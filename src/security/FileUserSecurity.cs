@@ -63,49 +63,22 @@ namespace Codebot.Web
 
         public static TUser CurrentUser
         {
-            get
-            {
-                return WebState.Context.User as TUser;
-            }
+            get => WebState.Context.User as TUser;
         }
 
-        protected static string Hasher(string value)
-        {
-            return Security.ComputeHash(value);
-        }
+        protected static string Hasher(string value) => Security.ComputeHash(value);
 
         private const string securityFile = "private/users.xml";
 
         private static readonly List<TUser> users = new List<TUser>();
 
-        public List<TUser> Users
-        {
-            get { return users; }
-        }
+        public List<TUser> Users { get => users; }
 
-        HttpContext IUserSecurity.Context
-        {
-            get
-            {
-                return WebState.Context;
-            }
-        }
+        HttpContext IUserSecurity.Context { get => WebState.Context; }
 
-        IWebUser IUserSecurity.User
-        {
-            get
-            {
-                return WebState.Context.User as IWebUser;
-            }
-        }
+        IWebUser IUserSecurity.User { get => WebState.Context.User as IWebUser; }
 
-        IEnumerable<IWebUser> IUserSecurity.Users
-        {
-            get
-            {
-                return Users;
-            }
-        }
+        IEnumerable<IWebUser> IUserSecurity.Users { get => Users; }
 
         public bool AddUser(Dictionary<string, string> args)
         {
@@ -211,15 +184,11 @@ namespace Codebot.Web
             doc.Save(fileName);
         }
 
-        protected virtual void ApplicationStartRequest(object sender, ContextEventArgs args)
-        {
+        protected virtual void ApplicationStartRequest(object sender, ContextEventArgs args) =>
             args.Context.User = WebUser.Anonymous.Restore(this, WebState.UserAgent) as ClaimsPrincipal;
-        }
 
-        protected virtual void ApplicationFinishRequest(object sender, ContextEventArgs args)
-        {
+        protected virtual void ApplicationFinishRequest(object sender, ContextEventArgs args) =>
             args.Context.User = null;
-        }
 
         public FileUserSecurity()
         {

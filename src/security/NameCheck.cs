@@ -46,24 +46,20 @@ namespace Codebot.Web
 			if (length < 5 || length > 32)
 				return false;
 			var alphaCount = 0;
-			foreach (var c in password)
-				if (c <= ' ')
-					return false;
-				else if (c > '~')
-					return false;
-				else if (IsAlpha(c))
-					alphaCount++;
+            foreach (var c in password)
+            {
+                if (c <= ' ')
+                    return false;
+                if (c > '~')
+                    return false;
+                if (IsAlpha(c))
+                    alphaCount++;
+            }
 			return alphaCount > 0;
 		}
 
-		private static bool IsAlpha(char c)
-		{
-			return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-		}
+		static bool IsAlpha(char c) => (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 
-		private static bool IsAlphanumeric(char c)
-		{
-			return IsAlpha(c) || (c >= '0' && c <= '9');
-		}
+		static bool IsAlphanumeric(char c) => IsAlpha(c) || (c >= '0' && c <= '9');
 	}
 }

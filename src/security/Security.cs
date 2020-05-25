@@ -27,10 +27,7 @@ namespace Codebot.Web
 			return secret;
 		}
 
-		public static void SecretKey(string key)
-		{
-			secretKey = key;
-		}
+		public static void SecretKey(string key) => secretKey = key;
 
 		public static string ComputeHash(string value)
 		{
@@ -63,15 +60,11 @@ namespace Codebot.Web
             context.Response.Cookies.Append(cookieName, s, option);
 		}
 
-		public static void DeleteCredentials(HttpContext context)
-		{
+		public static void DeleteCredentials(HttpContext context) =>
             context.Response.Cookies.Delete(cookieName);
-		}
 
-		public static string Credentials(IWebUser user, string salt)
-		{
-			return user.Name + ":" + ComputeHash(salt + user.Name + user.Hash);
-		}
+		public static string Credentials(IWebUser user, string salt) =>
+			user.Name + ":" + ComputeHash(salt + user.Name + user.Hash);
 
 		public static bool Match(IWebUser user, string salt, string credentials)
 		{
