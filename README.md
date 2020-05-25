@@ -166,7 +166,7 @@ In addition to using this framework to generate templated responses, it can also
 
 ```csharp
     [Action("hello")]
-    public void HelloAction() { Write("Hello World!"); }
+    public void HelloAction() => Write("Hello World!"); 
 ```
 
 If the client then submits a request with an action named ``hello`` it will receive back ``Hello World!``. Here is what a request to our action would look:
