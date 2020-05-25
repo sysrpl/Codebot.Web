@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace Codebot.Web
+namespace Codebot
 {
     public static class Converter
 	{

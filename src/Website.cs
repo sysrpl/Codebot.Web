@@ -23,7 +23,7 @@ namespace Codebot.Web
         /// <summary>
         /// Read from files by keeping a cached copy of their content
         /// </summary>
-        private static string FileContent(string fileName)
+        public static string FileRead(string fileName)
         {
             lock (locker)
             {
@@ -51,6 +51,16 @@ namespace Codebot.Web
         }
 
         /// <summary>
+        /// Write a file using content
+        /// </summary>
+        public static void FileWrite(string fileName, string content)
+        {
+            File.WriteAllText(fileName, content);
+        }
+
+        public static IUserSecurity Security { get; set; }
+
+        /// <summary>
         /// HandlerType contains "home.dchc" but it can be adjusted to any value
         /// you want
         /// </summary>
@@ -62,36 +72,91 @@ namespace Codebot.Web
         }
 
         /// <summary>
+        /// Context events are called in this order
+        /// </summary>
+        public static event ContextEventHandler OnStart;
+        public static event ContextEventHandler OnStartRequest;
+        public static event ContextEventHandler OnProcessRequest;
+        public static event ContextEventHandler OnError;
+        public static event ContextEventHandler OnFinishRequest;
+
+        static bool started;
+        void Start(HttpContext ctx)
+        {
+            lock (locker)
+                if (!started)
+                {
+                    started = true;
+                    OnStart?.Invoke(this, new ContextEventArgs(ctx));
+                }
+        }
+
+        /// <summary>
         /// Look for a home.ashx and try to convert it into a BasicHandler,
         /// otherwise serve static files. We also reject attempts to read from
         /// parent folders 
         /// </summary>
         async Task ProcessRequest(HttpContext ctx, Func<Task> next)
         {
-            var handled = false;
-            var s = WebState.MapPath("");
-            if (Directory.Exists(s))
+            Start(ctx);
+            OnStartRequest?.Invoke(this, new ContextEventArgs(ctx));
+            var requestHandled = false;
+            try
             {
-                if (s.Contains(".."))
-                    s = string.Empty;
-                else
-                    s = FileContent(Path.Combine(s, HandlerType));
-                if (s.Length > 0)
+                IHttpHandler handler = null;
+                if (OnProcessRequest != null)
                 {
-                    var t = Type.GetType(s);
-                    if (t != null)
+                    var args = new ContextEventArgs(ctx);
+                    OnProcessRequest(this, args);
+                    handler = args.Handler;
+                }
+                if (handler != null)
+                {
+                    requestHandled = true;
+                    WebState.Attach(handler as BasicHandler);
+                    await Task.Run(() => handler.ProcessRequest(ctx));
+                }
+                else
+                {
+                    var s = WebState.MapPath("");
+                    if (Directory.Exists(s))
                     {
-                        if (Activator.CreateInstance(t) is BasicHandler b)
+                        if (s.Contains(".."))
+                            s = string.Empty;
+                        else
+                            s = FileRead(Path.Combine(s, HandlerType));
+                        if (s.Length > 0)
                         {
-                            handled = true;
-                            WebState.Attach(b);
-                            await Task.Run(() => b.ProcessRequest(ctx));
+                            var t = Type.GetType(s);
+                            if (t != null)
+                            {
+                                if (Activator.CreateInstance(t) is BasicHandler b)
+                                {
+                                    requestHandled = true;
+                                    WebState.Attach(b);
+                                    await Task.Run(() => b.ProcessRequest(ctx));
+                                }
+                            }
                         }
                     }
                 }
             }
-            if (!handled)
+            catch (Exception e)
+            {
+                requestHandled = true;
+                var errorHandled = false;
+                if (OnError != null)
+                {
+                    var args = new ContextEventArgs(ctx, e);
+                    OnError(this, args);
+                    errorHandled = args.Handled;
+                }
+                if (!errorHandled)
+                    throw e;
+            }
+            if (!requestHandled)
                 await next();
+            OnFinishRequest?.Invoke(this, new ContextEventArgs(ctx));
         }
 
         /// <summary>
@@ -134,3 +199,4 @@ namespace Codebot.Web
         }
     }
 }
+

@@ -14,6 +14,7 @@ namespace Codebot.Web
     {
         private static IHttpContextAccessor accessor;
         private static object key;
+        private static string approot;
         private static string webroot;
 
         /// <summary>
@@ -23,7 +24,8 @@ namespace Codebot.Web
         {
             WebState.accessor = accessor;
             key = new object();
-            webroot = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            approot = Directory.GetCurrentDirectory();
+            webroot = System.IO.Path.Combine(approot, "wwwroot");
         }
 
         /// <summary>
@@ -44,10 +46,24 @@ namespace Codebot.Web
         /// </summary>
         public static BasicHandler Handler { get => Context.Items[key] as BasicHandler; }
 
+
+        /// <summary>
+        /// The current user agent
+        /// </summary>
+        public static string UserAgent { get => Context.Request.Headers["User-Agent"].ToString(); }
+
         /// <summary>
         /// The current requested path
         /// </summary>
         public static string Path { get => Context.Request.Path.Value; }
+
+        /// <summary>
+        /// Map a path to application file path 
+        /// </summary>
+        public static string AppPath(string path)
+        {
+            return string.IsNullOrEmpty(path) ? approot : System.IO.Path.Combine(approot, path);
+        }
 
         /// <summary>
         /// Map a web request path to a physical file path 

@@ -32,4 +32,9 @@
   <ItemGroup>
     <Compile Include="obj\Debug\netcoreapp3.1\Codebot.Web.AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\security\" />
+    <Folder Include="src\xml\" />
+    <Folder Include="src\common\" />
+  </ItemGroup>
 </Project>

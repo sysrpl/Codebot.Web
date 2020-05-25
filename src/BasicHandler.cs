@@ -16,7 +16,7 @@ namespace Codebot.Web
     /// BasicHandler performs evertyhing you need to handle a response. You
     /// only need to override Run into to make your derived class process requests
     /// </summary>
-    public abstract class BasicHandler
+    public abstract class BasicHandler : IHttpHandler
     {
         public delegate string WriteConverter(object item);
         public delegate object QuerySectionsFunc(BasicHandler handler);
@@ -520,12 +520,12 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Read the contents a cached file without substitutes
+        /// Read and caches the contents of a file without includes or templates
         /// </summary>
-        /// <param name="fileName">The file to read</param>
-        /// <param name="changed">A out bool indicating if the file has changed</param>
-        /// <returns>Returns the exact contents of a file without sustitues</returns>
-        public static string IncludeReadDirect(string fileName, out bool changed)
+        /// <param name="fileName">The file to read and cache</param>
+        /// <param name="changed">A output bool indicating if the file has changed</param>
+        /// <returns>Returns the exact contents of a file</returns>
+        public string IncludeReadDirect(string fileName, out bool changed)
         {
             string data = string.Empty;
             fileName = WebState.MapPath(fileName);
@@ -559,19 +559,19 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Read the contents a cached file without substitutes
+        /// Read and caches the contents of a file without includes or templates
         /// </summary>
-        /// <param name="fileName">The file to read</param>
-        /// <returns>Returns the exact contents of a file without sustitues</returns>
+        /// <param name="fileName">The file to read and cache</param>
+        /// <returns>Returns the exact contents of a file</returns>
         public string IncludeReadDirect(string fileName)
         {
             return IncludeReadDirect(fileName, out bool changed);
         }
 
         /// <summary>
-        /// Read the contents a cached file with include files
+        /// Read and caches the contents of a file with includes and no templating
         /// </summary>
-        /// <param name="fileName">The file to read</param>
+        /// <param name="fileName">The file to read and cache</param>
         /// <param name="args">An optional list or items to format</param>
         /// <returns>Returns the contents of a file with include files</returns>
         public string IncludeRead(string fileName, params object[] args)
@@ -598,10 +598,11 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Read the contents a cached file with include files and formated 
+        /// Read and cache the contents a file with includes and templating
         /// </summary>
-        /// <param name="fileName">File to include</param>
-        /// <returns>Returns the contents of a file with include files and formatted</returns>
+        /// <param name="fileName">File to read and cache</param>
+        /// <param name="item">Object to use with templating</param>
+        /// <returns>Returns the contents of a file templated using an object</returns>
         public string IncludeReadObject(string fileName, object item)
         {
             string s = IncludeRead(fileName);
@@ -609,9 +610,9 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Includes a cached file
+        /// Include file in the response optionally templating the contents
         /// </summary>
-        /// <param name="fileName">File to include</param>
+        /// <param name="fileName">The file to read and cache</param>
         /// <param name="isTemplate">Optionally format the include as a template of the current handler</param>
         public void Include(string fileName, bool isTemplate = false)
         {
@@ -783,20 +784,11 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Attaches a handler instance to an http context
+        /// ProcessRequest takes ownership of an HttpContext and generates a response
         /// </summary>
-        public void Attach(HttpContext context)
+        public void ProcessRequest(HttpContext context)
         {
             Context = context;
-        }
-
-        /// <summary>
-        /// The entry point by the main program
-        /// </summary>
-        /// <param name="HttpContext">Http context.</param>
-        public void ProcessRequest(HttpContext HttpContext)
-        {
-            Attach(HttpContext);
             Render();
         }
     }
