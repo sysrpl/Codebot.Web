@@ -46,7 +46,6 @@ namespace Codebot.Web
         /// </summary>
         public static BasicHandler Handler { get => Context.Items[key] as BasicHandler; }
 
-
         /// <summary>
         /// The current user agent
         /// </summary>
@@ -58,7 +57,7 @@ namespace Codebot.Web
         public static string Path { get => Context.Request.Path.Value; }
 
         /// <summary>
-        /// Map a path to application file path 
+        /// Map a path to application file path
         /// </summary>
         public static string AppPath(string path)
         {

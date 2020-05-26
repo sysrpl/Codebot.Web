@@ -18,6 +18,4 @@ namespace Codebot.Web
             Error = error;
         }
     }
-
-    public delegate void ContextEventHandler(object sender, ContextEventArgs args);
 }

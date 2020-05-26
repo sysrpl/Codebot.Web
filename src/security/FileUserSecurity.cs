@@ -3,8 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 using Codebot.Xml;
+using Microsoft.AspNetCore.Http;
 
 namespace Codebot.Web
 {
@@ -68,17 +68,11 @@ namespace Codebot.Web
 
         protected static string Hasher(string value) => Security.ComputeHash(value);
 
-        private const string securityFile = "private/users.xml";
+        const string securityFile = "private/users.xml";
 
-        private static readonly List<TUser> users = new List<TUser>();
+        static readonly List<TUser> users = new List<TUser>();
 
         public List<TUser> Users { get => users; }
-
-        HttpContext IUserSecurity.Context { get => WebState.Context; }
-
-        IWebUser IUserSecurity.User { get => WebState.Context.User as IWebUser; }
-
-        IEnumerable<IWebUser> IUserSecurity.Users { get => Users; }
 
         public bool AddUser(Dictionary<string, string> args)
         {
@@ -113,7 +107,7 @@ namespace Codebot.Web
         {
             if (!WebState.Context.User.IsInRole("admin"))
                 return false;
-            if (String.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(name))
                 return false;
             name = name.Trim();
             if (!NameCheck.IsValidUserName(name))
@@ -139,7 +133,7 @@ namespace Codebot.Web
             return true;
         }
 
-        private void CreateConfig(Document doc)
+        void CreateConfig(Document doc)
         {
             var filer = doc.Force("security").Filer;
             var secret = filer.ReadString("secret");
@@ -151,7 +145,7 @@ namespace Codebot.Web
             Security.SecretKey(secret);
         }
 
-        private void CreateUsers(Document doc)
+        void CreateUsers(Document doc)
         {
             var nodes = doc.Force("security/users").Nodes;
             if (nodes.Count == 0)
@@ -196,6 +190,10 @@ namespace Codebot.Web
             Website.OnStartRequest += ApplicationStartRequest;
             Website.OnFinishRequest += ApplicationFinishRequest;
         }
+
+        HttpContext IUserSecurity.Context { get => WebState.Context; }
+        IWebUser IUserSecurity.User { get => WebState.Context.User as IWebUser; }
+        IEnumerable<IWebUser> IUserSecurity.Users { get => Users; }
     }
 
     public class BasicUserSecurity : FileUserSecurity<WebUser>

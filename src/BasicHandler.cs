@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 namespace Codebot.Web
 {
     /// <summary>
-    /// BasicHandler performs evertyhing you need to handle a response. You
+    /// BasicHandler performs everything you need to handle a response. You
     /// only need to override Run into to make your derived class process requests
     /// </summary>
     public abstract class BasicHandler : IHttpHandler
@@ -22,9 +22,9 @@ namespace Codebot.Web
         public delegate object QuerySectionsFunc(BasicHandler handler);
         public delegate object FindObjectFunc(string key);
 
-        private static readonly Dictionary<string, object> objects;
-        private static readonly Dictionary<string, DateTime> includeLog;
-        private static readonly Dictionary<string, string> includeData;
+        static readonly Dictionary<string, object> objects;
+        static readonly Dictionary<string, DateTime> includeLog;
+        static readonly Dictionary<string, string> includeData;
 
         /// <summary>
         /// Initialize the BasicHandler class type
@@ -44,67 +44,37 @@ namespace Codebot.Web
         /// <summary>
         /// The HttpRequest associated with the handler
         /// </summary>
-        public HttpRequest Request { get { return Context.Request; } }
+        public HttpRequest Request => Context.Request;
 
         /// <summary>
         /// The HttpResponse associated with the handler
         /// </summary>
-        public HttpResponse Response { get { return Context.Response; } }
+        public HttpResponse Response => Context.Response;
 
         /// <summary>
         /// Returns true if the request is uses the POST method
         /// </summary>
-        public bool IsPost
-        {
-            get
-            {
-                return Context.Request.Method.Equals("POST", StringComparison.CurrentCultureIgnoreCase);
-            }
-        }
+        public bool IsPost => Context.Request.Method.Equals("POST", StringComparison.CurrentCultureIgnoreCase);
 
         /// <summary>
         /// Returns true if the request is uses the GET method
         /// </summary>
-        public bool IsGet
-        {
-            get
-            {
-                return Context.Request.Method.Equals("GET", StringComparison.CurrentCultureIgnoreCase);
-            }
-        }
+        public bool IsGet => Context.Request.Method.Equals("GET", StringComparison.CurrentCultureIgnoreCase);
 
         /// <summary>
         /// Returns true if there is request contains a QUERY
         /// </summary>
-        public bool IsQuery
-        {
-            get
-            {
-                return Context.Request.Query.Count > 0;
-            }
-        }
+        public bool IsQuery => Context.Request.Query.Count > 0;
 
         /// <summary>
         /// Returns true if a request contains a FORM
         /// </summary>
-        public bool IsForm
-        {
-            get
-            {
-                return IsPost ? Context.Request.Form.Count > 0 : false;
-            }
-        }
+        public bool IsForm => IsPost && Context.Request.Form.Count > 0;
 
         /// <summary>
         /// Returns true if the request is plain, that is not a POST, QUERY, or FORM 
         /// </summary>
-        public bool IsPlainRequest
-        {
-            get
-            {
-                return !IsPost && !IsQuery & !IsForm;
-            }
-        }
+        public bool IsPlainRequest => !IsPost && !IsQuery && !IsForm;
 
         /// <summary>
         /// Returns true if the request comes from a local network address
@@ -121,24 +91,12 @@ namespace Codebot.Web
         /// <summary>
         /// Returns true if the user is an administrator
         /// </summary>
-        public virtual bool IsAdmin
-        {
-            get
-            {
-                return IsLocal;
-            }
-        }
+        public virtual bool IsAdmin => IsLocal;
 
         /// <summary>
         /// Returns true if a scheme to authenticate has detected a user
         /// </summary>
-        public virtual bool IsAuthenticated
-        {
-            get
-            {
-                return IsLocal;
-            }
-        }
+        public virtual bool IsAuthenticated => IsLocal;
 
         private static readonly string[] platforms = { "windows phone", "windows",
             "macintosh", "linux", "iphone", "android" };
@@ -163,14 +121,8 @@ namespace Codebot.Web
         /// </summary>
         public string ContentType
         {
-            get
-            {
-                return Response.ContentType;
-            }
-            set
-            {
-                Response.ContentType = value;
-            }
+            get => Response.ContentType;
+            set => Response.ContentType = value;
         }
 
         /// <summary>
@@ -208,7 +160,7 @@ namespace Codebot.Web
             if (!IsForm)
                 return false;
             string s = Context.Request.Form[key];
-            return !String.IsNullOrWhiteSpace(s);
+            return !string.IsNullOrWhiteSpace(s);
         }
 
         /// <summary>
@@ -220,17 +172,17 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Trys to reads T from the request with a default value
+        /// Tries to reads T from the request with a default value
         /// </summary>
         public bool TryRead<T>(string key, out T result, T defaultValue = default(T))
         {
-            string s = string.Empty;
+            var s = string.Empty;
             if (IsQuery)
                 s = Context.Request.Query[key];
-            if (String.IsNullOrEmpty(s) && IsForm)
+            if (string.IsNullOrEmpty(s) && IsForm)
                 s = Context.Request.Form[key];
-            s = String.IsNullOrEmpty(s) ? String.Empty : s.Trim();
-            if (s.Equals(String.Empty))
+            s = string.IsNullOrEmpty(s) ? string.Empty : s.Trim();
+            if (s.Equals(string.Empty))
             {
                 result = defaultValue;
                 return false;
@@ -277,11 +229,11 @@ namespace Codebot.Web
         /// </summary>
         public string ReadAny(params string[] keys)
         {
-            string result = String.Empty;
-            foreach (var key in keys)
+            string result;
+            foreach (string key in keys)
                 if (TryRead(key, out result))
                     return result;
-            return String.Empty;
+            return string.Empty;
         }
 
         /// <summary>
@@ -315,7 +267,7 @@ namespace Codebot.Web
         /// </summary>
         public void Write(string s, params object[] args)
         {
-            Context.Response.WriteAsync(String.Format(s, args));
+            Context.Response.WriteAsync(string.Format(s, args));
         }
 
         /// <summary>
@@ -466,9 +418,9 @@ namespace Codebot.Web
             Response.ContentType = response.ContentType;
             using (var stream = response.GetResponseStream())
                 if (forwardResponse)
-                    stream.CopyTo(Response.Body);
+                    stream?.CopyTo(Response.Body);
                 else
-                    stream.ReadByte();
+                    stream?.ReadByte();
         }
 
         /// <summary>
@@ -505,19 +457,13 @@ namespace Codebot.Web
         /// Returns true if a file exists
         /// </summary>
         /// <param name="fileName">The filename to be mapped</param>
-        public bool FileExists(string fileName)
-        {
-            return File.Exists(WebState.MapPath(fileName));
-        }
+        public bool FileExists(string fileName) => File.Exists(WebState.MapPath(fileName));
 
         /// <summary>
         /// Returns true if a folder exists
         /// </summary>
         /// <param name="folder">The folder to be mapped</param>
-        public bool FolderExists(string folder)
-        {
-            return Directory.Exists(WebState.MapPath(folder));
-        }
+        public bool FolderExists(string folder) => Directory.Exists(WebState.MapPath(folder));
 
         /// <summary>
         /// Read and caches the contents of a file without includes or templates
@@ -717,7 +663,6 @@ namespace Codebot.Web
             Write(buffer);
         }
 
-
         /// <summary>
         /// Gets the name of the class
         /// </summary>
@@ -735,24 +680,12 @@ namespace Codebot.Web
         /// <summary>
         /// Gets the name of the class
         /// </summary>
-        public string ClassName
-        {
-            get
-            {
-                return GetType().ToString().Split('.').Last();
-            }
-        }
+        public string ClassName => GetType().ToString().Split('.').Last();
 
         /// <summary>
-        /// Gets the url of the refering page
+        /// Gets the url of the referring page
         /// </summary>
-        public string Referer
-        {
-            get
-            {
-                return Request.Headers["Referer"].ToString();
-            }
-        }
+        public string Referer => Request.Headers["Referer"].ToString();
 
         /// <summary>
         /// Normally a reference to this handler
@@ -762,12 +695,12 @@ namespace Codebot.Web
         /// <summary>
         /// Gets the title of the response
         /// </summary>
-        public virtual string Title { get => "Blank"; }
+        public virtual string Title => "Blank";
 
         /// <summary>
         /// Gets the content of the response
         /// </summary>
-        public virtual string Content { get => "Blank"; }
+        public virtual string Content => "Blank";
 
         /// <summary>
         /// Run is invoked by the Render() method

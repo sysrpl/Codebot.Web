@@ -11,6 +11,7 @@ In Test.csproj place:
   </PropertyGroup>
 </Project>
 ```
+
 In Hello.cs place:
 
 ```csharp
@@ -262,4 +263,3 @@ Handling json data assuming the entire request body is a json object:
         Write(JsonSerializer.Serialize(results));
     }
 ```
-

@@ -15,10 +15,10 @@ namespace Codebot.Web
         /// </summary>
         protected static string Action { get; set; }
 
-        static PageHandler()
-        {
-            Action = "action";
-        }
+        /// <summary>
+        /// Allow the user to redefine the action identifier
+        /// </summary>
+        static PageHandler() => Action = "action";
 
         /// <summary>
         /// The signature of a web action
@@ -28,9 +28,7 @@ namespace Codebot.Web
         /// <summary>
         /// Invoked when no default page is found
         /// </summary>
-        protected virtual void EmptyPage()
-        {
-        }
+        protected virtual void EmptyPage() { }
 
         /// <summary>
         /// Check for a PageType derived attribute including DefaultPage
@@ -52,13 +50,7 @@ namespace Codebot.Web
         /// </summary>
         private void InvokeDefaultPage()
         {
-            /* For now logging and user authetication have not been ported over
-            var logged = GetType().GetCustomAttribute<LoggedAttribute>(true);
-            if (logged != null)
-                Log.Add(this);
             if ((!IsAuthenticated && InvokePageType<LoginPageAttribute>()) || InvokePageType<DefaultPageAttribute>())
-                return; */
-            if (InvokePageType<DefaultPageAttribute>())
                 return;
             EmptyPage();
         }
@@ -66,32 +58,22 @@ namespace Codebot.Web
         /// <summary>
         /// Invoked when no action is found
         /// </summary>
-        protected virtual void EmptyAction(string actionName)
-        {
-            InvokeDefaultPage();
-        }
+        protected virtual void EmptyAction(string actionName) => InvokeDefaultPage();
 
         /// <summary>
-        /// Provide a chance for desedent to superceed ActionPage rights
+        /// Provide a chance for decedents to supersede ActionPage rights
         /// </summary>
-        protected virtual bool AllowAction(string actionName)
-        {
-            return true;
-        }
+        protected virtual bool AllowAction(string actionName) => true;
 
         /// <summary>
         /// The action was denied and you can do something about it here
         /// </summary>
-        protected virtual void OnDeny(string actionName)
-        {
-        }
+        protected virtual void OnDeny(string actionName) { }
 
         /// <summary>
         /// The action was allowed and you can do something about it here
         /// </summary>
-        protected virtual void OnAllow(string actionName)
-        {
-        }
+        protected virtual void OnAllow(string actionName) { }
 
         /// <summary>
         /// Check the ActionPage for deny rights 
@@ -99,7 +81,7 @@ namespace Codebot.Web
         private bool Deny(ActionAttribute a)
         {
             var deny = a.Deny;
-            if (String.IsNullOrEmpty(deny))
+            if (string.IsNullOrEmpty(deny))
                 return false;
             var list = deny.Split(",").Select(s => s.Trim().ToLower());
             var user = Context.User;
@@ -136,8 +118,9 @@ namespace Codebot.Web
         {
             foreach (var action in GetType().GetMethods())
             {
-                var attribute = action.GetCustomAttributes<ActionAttribute>(true)
-                    .FirstOrDefault(a => a.ActionName.ToLower() == actionName);
+                var attribute = Array.Find(
+                    action.GetCustomAttributes<ActionAttribute>(true),
+                    a => a.ActionName.ToLower() == actionName);
                 if (attribute != null)
                 {
                     if (Deny(attribute))

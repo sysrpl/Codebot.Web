@@ -16,9 +16,9 @@ namespace Codebot.Web
     /// </summary>
     public sealed class Website
     {
-        static readonly object locker = new object();
-        static readonly Dictionary<string, DateTime> fileDates = new Dictionary<string, DateTime>();
-        static readonly Dictionary<string, string> fileContent = new Dictionary<string, string>();
+        private static readonly object locker = new object();
+        private static readonly Dictionary<string, DateTime> fileDates = new Dictionary<string, DateTime>();
+        private static readonly Dictionary<string, string> fileContent = new Dictionary<string, string>();
 
         /// <summary>
         /// Read from files by keeping a cached copy of their content
@@ -58,13 +58,13 @@ namespace Codebot.Web
             File.WriteAllText(fileName, content);
         }
 
-        public static IUserSecurity Security { get; set; }
+        public static IUserSecurity UserSecurity { get; set; }
 
         /// <summary>
         /// HandlerType contains "home.dchc" but it can be adjusted to any value
         /// you want
         /// </summary>
-        public static string HandlerType { get; private set; }
+        public static string HandlerType { get; set; }
 
         static Website()
         {
@@ -74,29 +74,30 @@ namespace Codebot.Web
         /// <summary>
         /// Context events are called in this order
         /// </summary>
-        public static event ContextEventHandler OnStart;
-        public static event ContextEventHandler OnStartRequest;
-        public static event ContextEventHandler OnProcessRequest;
-        public static event ContextEventHandler OnError;
-        public static event ContextEventHandler OnFinishRequest;
+        public static event EventHandler<ContextEventArgs> OnStart;
+        public static event EventHandler<ContextEventArgs> OnStartRequest;
+        public static event EventHandler<ContextEventArgs> OnProcessRequest;
+        public static event EventHandler<ContextEventArgs> OnError;
+        public static event EventHandler<ContextEventArgs> OnFinishRequest;
 
-        static bool started;
-        void Start(HttpContext ctx)
+        private static bool started;
+        private void Start(HttpContext ctx)
         {
-            lock (locker)
-                if (!started)
-                {
-                    started = true;
-                    OnStart?.Invoke(this, new ContextEventArgs(ctx));
-                }
+            if (!started)
+                lock (locker)
+                    if (!started)
+                    {
+                        started = true;
+                        OnStart?.Invoke(this, new ContextEventArgs(ctx));
+                    }
         }
 
         /// <summary>
-        /// Look for a home.ashx and try to convert it into a BasicHandler,
+        /// Look for a home.acdc and try to convert it into a BasicHandler,
         /// otherwise serve static files. We also reject attempts to read from
-        /// parent folders 
+        /// parent folders.
         /// </summary>
-        async Task ProcessRequest(HttpContext ctx, Func<Task> next)
+        private async Task ProcessRequest(HttpContext ctx, Func<Task> next)
         {
             Start(ctx);
             OnStartRequest?.Invoke(this, new ContextEventArgs(ctx));
@@ -152,7 +153,7 @@ namespace Codebot.Web
                     errorHandled = args.Handled;
                 }
                 if (!errorHandled)
-                    throw e;
+                    throw;
             }
             if (!requestHandled)
                 await next();

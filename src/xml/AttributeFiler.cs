@@ -1,11 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Xml;
 
 namespace Codebot.Xml
 {
-	internal class AttributeFiler : Filer
+    internal class AttributeFiler : Filer
 	{
 		internal XmlAttributeCollection InternalAttributes
 		{
@@ -22,14 +19,13 @@ namespace Codebot.Xml
 
 		protected override string ReadValue(string name, string value, bool stored)
 		{
-			XmlNode node = InternalNode;
-			node = InternalAttributes.GetNamedItem(name);
-			if ((node == null) && (stored))
+			var node = InternalAttributes.GetNamedItem(name);
+			if ((node == null) && stored)
 			{
 				node = InternalNode.OwnerDocument.CreateAttribute(name);
 				InternalAttributes.SetNamedItem(node);
 				node.InnerText = value;
-			};
+			}
 			return node != null ? node.InnerText : value;
 		}
 

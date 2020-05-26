@@ -7,4 +7,3 @@ namespace Codebot.Web
 		public DefaultPageAttribute(string fileName) : base(fileName) { }
 	}
 }
-    

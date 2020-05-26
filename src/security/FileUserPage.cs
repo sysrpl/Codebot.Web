@@ -43,7 +43,7 @@ namespace Codebot.Web
 		[Action("login")]
 		public void LoginAction()
 		{
-            var security = Website.Security;
+            var security = Website.UserSecurity;
             var name = ReadAny("name", "username", "login");
 			var password = Read("password");
 			if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(password))
@@ -62,7 +62,7 @@ namespace Codebot.Web
 		[Action("logout")]
 		public void LogoutAction()
 		{
-			var security = Website.Security;
+			var security = Website.UserSecurity;
 			User.Logout(security);
 			var redirect = Read("redirect");
 			if (redirect == "true")
@@ -77,7 +77,7 @@ namespace Codebot.Web
 			var users = new List<string>() { User.Name };
 			if (User.IsAdmin)
 			{
-                var security = Website.Security;
+                var security = Website.UserSecurity;
                 lock (WebUser.Anonymous)
 				{
 					var names = security
