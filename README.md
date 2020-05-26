@@ -64,11 +64,11 @@ Using the simple example above you would have the following directory and file s
 
 In this arrangement ``Codebot.Web folder`` is a sibling of the ``Test`` folder. The ``Codebot.Web`` folder contains a copy of this git repository and the ``Test`` folder contains your website project.
 
-The ``Test/wwwroot`` folder contains the content of your website including any static files and subfolders might want to serve. When a client web browser requests a resource the web server will search for them begining in the ``wwwroot`` folder.
+The ``Test/wwwroot`` folder contains the content of your website including any static files and sub folders might want to serve. When a client web browser requests a resource the web server will search for them beginning in the ``wwwroot`` folder.
 
-If a request is made to a folder the framework will search for a special file named ``home.dchc`` (short for dotnet core handler class) then read its contents. The contents of ``home.dchc`` should contain the name of the handler class which will be used to handle the incomming request. In our case, the name of the handler class is ``Test.Hello, Test``, where ``Test.Hello`` is the namespace qualified name of the handler class and ``, Test`` references the the assembly name where the handler class is located. This handler class should derived from BasicHandler or one of its descendants. An instance of that class handler type will be created by the framework and invoked with the current ``HttpContext``.
+If a request is made to a folder the framework will search for a special file named ``home.dchc`` (short for dotnet core handler class) then read its contents. The contents of ``home.dchc`` should contain the name of the handler class which will be used to handle the incoming request. In our case, the name of the handler class is ``Test.Hello, Test``, where ``Test.Hello`` is the namespace qualified name of the handler class and ``, Test`` references the the assembly name where the handler class is located. This handler class should derived from BasicHandler or one of its descendants. An instance of that class handler type will be created by the framework and invoked with the current ``HttpContext``.
 
-Using this pattern of folders containing a ``home.dchc`` file its possible to design a website with one or more varying page handler types with each folder containing a ``home.dchc`` file designating which handler class procceses requests for that specific folder.
+Using this pattern of folders containing a ``home.dchc`` file its possible to design a website with one or more varying page handler types with each folder containing a ``home.dchc`` file designating which handler class processes requests for that specific folder.
 
 ## Serving Pages from Your Class
 
@@ -120,7 +120,7 @@ And in your ``home.html`` default page file:
 </html>
 ```
 
-The templating enging will recognize the curly braces ``{ }`` and attempt to substitute its contents using a property of your object. In the example above ``The title of this page is {Title}`` will be substituted with ``The title of this page is Blank``. This is because the base class of PageHandler defines a ``Title`` property like so:
+The template engine will recognize the curly braces ``{ }`` and attempt to substitute its contents using a property of your object. In the example above ``The title of this page is {Title}`` will be substituted with ``The title of this page is Blank``. This is because the base class of PageHandler defines a ``Title`` property like so:
 
 ```csharp
     public virtual string Title { get => "Blank"; }
@@ -153,7 +153,7 @@ To make this work your handler class would need to have a property named Current
 
 ### Formatting Templates
 
-In addition to inserting templates into your page files, you can also use format specifiers to control how those properties are converted. For example if you have a property on your handler class called ``DontatedAmount`` of type ``double`` it could be formatted like so:
+In addition to inserting templates into your page files, you can also use format specifiers to control how those properties are converted. For example if you have a property on your handler class called ``DonatedAmount`` of type ``double`` it could be formatted like so:
 
 ```html
     <p>We've received a total of {DonatedAmount:C2}!</p>
@@ -177,7 +177,7 @@ If the client then submits a request with an action named ``hello`` it will rece
 ```
 ### Processing Web Action Arguments
 
-In the web action example above we simply returned some static text. A dynamic result can be produced using arguments from a ``GET`` or ``POST`` request, which typically might orginate from a ``<form>`` element on your page. To use those arguments you can use any number of ``Read`` methods. Here is an example:
+In the web action example above we simply returned some static text. A dynamic result can be produced using arguments from a ``GET`` or ``POST`` request, which typically might originate from a ``<form>`` element on your page. To use those arguments you can use any number of ``Read`` methods. Here is an example:
 
 ```csharp
     [Action("purchase")]
@@ -187,19 +187,19 @@ In the web action example above we simply returned some static text. A dynamic r
       string product = ReadString("item");
       int count = ReadInt("qty");
       DateTime deliveryDate = Read<DateTime>("deliveryDate"); 
-      var json = SumbitOrder(userId, product, count, deliveryDate);
+      var json = SubmitOrder(userId, product, count, deliveryDate);
       ContentType = "text/json";
       Write(json);
     }
 ```
 
-Note the various ``Read`` methods at your disposal. Also note that a response in generated in json format using whatever backend technology you desire. In the example above ``SumbitOrder`` supposably does some work and returns json text. However you want to take action on a web action request is up to you. This framework just provides a simple way to accept those requests.
+Note the various ``Read`` methods at your disposal. Also note that a response in generated in json format using whatever backend technology you desire. In the example above ``SubmitOrder`` supposedly does some work and returns json text. However you want to take action on a web action request is up to you. This framework just provides a simple way to accept those requests.
 
 The invoker of our ``PurchaseAction`` might come from a web page using a form element like so:
 
 ```html
   <form action="?action=purchase" method="POST">
-    <input type="text" name="userid">
+    <input type="text" name="userId">
     <input type="text" name="item">
     <input type="text" name="qty">
     <input type="text" name="deliveryDate">
@@ -211,7 +211,7 @@ If you wanted to invoke our purchase action example without using a ``<form>`` e
 
 ```javascript
     let data = new FormData();
-    data.append("userid", 1);
+    data.append("userId", 1);
     data.append("item", "bananas");
     data.append("qty", "12");
     data.append("deliveryDate", "1/15/2020");
