@@ -183,7 +183,7 @@ In the web action example above we simply returned some static text. A dynamic r
     [Action("purchase")]
     public void PurchaseAction()
     {
-      string userId = ReadInt("userid");
+      string userId = ReadInt("userId");
       string product = ReadString("item");
       int count = ReadInt("qty");
       DateTime deliveryDate = Read<DateTime>("deliveryDate"); 
@@ -229,7 +229,7 @@ Sending a file to the client based on some criteria:
     [Action("download")]
     public void DownloadAction()
     {
-        string fileName = MapPath("../private/" + Read("filename"));
+        string fileName = MapPath("/../private/" + Read("filename"));
         if (FileExists(fileName) && UserAuthorized)
           SendAttachment(fileName);
         else
