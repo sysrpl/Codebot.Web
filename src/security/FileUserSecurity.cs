@@ -42,7 +42,7 @@ namespace Codebot.Web
             var name = args["name"].Trim();
             var password = args["password"].Trim();
             var roles = args["roles"].Trim();
-            if (String.IsNullOrWhiteSpace(name) || String.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(password))
                 return null;
             name = name.Trim();
             if (!NameCheck.IsValidUserName(name))
@@ -54,7 +54,7 @@ namespace Codebot.Web
             var hash = Hasher(password);
             lock (WebUser.Anonymous)
             {
-                var user = Users.FirstOrDefault(u => u.Name.ToLower() == lowerName);
+                var user = Users.Find(u => u.Name.ToLower() == lowerName);
                 if (user != null)
                     return null;
             }
@@ -66,11 +66,11 @@ namespace Codebot.Web
             get => WebState.Context.User as TUser;
         }
 
-        protected static string Hasher(string value) => Security.ComputeHash(value);
+        private protected static string Hasher(string value) => Security.ComputeHash(value);
 
-        const string securityFile = "private/users.xml";
+        private const string securityFile = "private/users.xml";
 
-        static readonly List<TUser> users = new List<TUser>();
+        private static readonly List<TUser> users = new List<TUser>();
 
         public List<TUser> Users { get => users; }
 
@@ -115,7 +115,7 @@ namespace Codebot.Web
             var lowerName = name.ToLower();
             lock (WebUser.Anonymous)
             {
-                var user = Users.FirstOrDefault(u => u.Name.ToLower() == lowerName);
+                var user = Users.Find(u => u.Name.ToLower() == lowerName);
                 if (user == null)
                     return false;
                 if (user.IsInRole("admin"))
@@ -133,11 +133,11 @@ namespace Codebot.Web
             return true;
         }
 
-        void CreateConfig(Document doc)
+        private void CreateConfig(Document doc)
         {
             var filer = doc.Force("security").Filer;
             var secret = filer.ReadString("secret");
-            if (String.IsNullOrWhiteSpace(secret))
+            if (string.IsNullOrWhiteSpace(secret))
             {
                 secret = Security.RandomSecretKey(32);
                 filer.WriteString("secret", secret);
@@ -145,7 +145,7 @@ namespace Codebot.Web
             Security.SecretKey(secret);
         }
 
-        void CreateUsers(Document doc)
+        private void CreateUsers(Document doc)
         {
             var nodes = doc.Force("security/users").Nodes;
             if (nodes.Count == 0)

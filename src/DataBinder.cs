@@ -71,11 +71,11 @@ namespace Codebot.Web
 
             bool is_string = false;
             // a quoted val means we have a string
-            if ((val[0] == '\'' && val[val.Length - 1] == '\'') ||
-                (val[0] == '\"' && val[val.Length - 1] == '\"'))
+            if ((val[0] == '\'' && val[^1] == '\'') ||
+                (val[0] == '\"' && val[^1] == '\"'))
             {
                 is_string = true;
-                val = val.Substring(1, val.Length - 2);
+                val = val[1..^1];
             }
             else
             {
@@ -123,17 +123,16 @@ namespace Codebot.Web
             Type t = container.GetType();
 
             // MS does not seem to look for any other than "Item"!!!
-            object[] atts = t.GetCustomAttributes(typeof(DefaultMemberAttribute), false);
-            if (atts.Length != 1)
+            object[] attrs = t.GetCustomAttributes(typeof(DefaultMemberAttribute), false);
+            if (attrs.Length != 1)
                 property = "Item";
             else
-                property = ((DefaultMemberAttribute)atts[0]).MemberName;
+                property = ((DefaultMemberAttribute)attrs[0]).MemberName;
 
             Type[] argTypes = { (is_string) ? typeof(string) : typeof(int) };
             PropertyInfo prop = t.GetProperty(property, argTypes);
             if (prop == null)
                 throw new ArgumentException(expr + " indexer not found.");
-
             object[] args = new object[1];
             if (is_string)
                 args[0] = val;

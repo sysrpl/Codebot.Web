@@ -156,7 +156,7 @@ namespace Codebot.Web
                     throw;
             }
             if (!requestHandled)
-                await next();
+                await next().ConfigureAwait(false);
             OnFinishRequest?.Invoke(this, new ContextEventArgs(ctx));
         }
 

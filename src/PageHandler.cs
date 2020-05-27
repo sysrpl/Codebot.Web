@@ -4,7 +4,7 @@ using System.Linq;
 namespace Codebot.Web
 {
     /// <summary>
-    /// Page handler is a typically the base class your should derive from 
+    /// Page handler is a typically the base class your should derive from
     /// to handle requests. You may adorn you class with [DefaultPage] or
     /// its actions with [Action]
     /// </summary>
@@ -76,7 +76,7 @@ namespace Codebot.Web
         protected virtual void OnAllow(string actionName) { }
 
         /// <summary>
-        /// Check the ActionPage for deny rights 
+        /// Check the ActionPage for deny rights
         /// </summary>
         private bool Deny(ActionAttribute a)
         {
