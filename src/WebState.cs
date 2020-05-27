@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 namespace Codebot.Web
 {
     /// <summary>
-    /// The WebSate class provides access to the current context, handler, 
+    /// The WebSate class provides access to the current context, handler,
     /// and path information
     /// </summary>
     public static class WebState
@@ -31,10 +31,8 @@ namespace Codebot.Web
         /// <summary>
         /// Called every time a BasicHandler is created
         /// </summary>
-        public static void Attach(BasicHandler handler)
-        {
+        public static void Attach(BasicHandler handler) =>
             Context.Items.Add(key, handler);
-        }
 
         /// <summary>
         /// The current HttpContext
@@ -59,17 +57,17 @@ namespace Codebot.Web
         /// <summary>
         /// Map a path to application file path
         /// </summary>
-        public static string AppPath(string path)
-        {
-            return string.IsNullOrEmpty(path) ? approot : System.IO.Path.Combine(approot, path);
-        }
+        public static string AppPath(string path) =>
+            string.IsNullOrEmpty(path) ? approot : System.IO.Path.Combine(approot, path);
 
         /// <summary>
-        /// Map a web request path to a physical file path 
+        /// Map a web request path to a physical file path
         /// </summary>
         public static string MapPath(string path)
         {
             // TODO ponder blocking ".." in path for security reasons
+            if (string.IsNullOrEmpty(path))
+                return webroot;
             if (path.StartsWith("/"))
             {
                 path = path.Substring(1);
@@ -79,7 +77,7 @@ namespace Codebot.Web
             if (root.StartsWith("/"))
                 root = root.Substring(1);
             root = string.IsNullOrEmpty(root) ? webroot : System.IO.Path.Combine(webroot, root);
-            return string.IsNullOrEmpty(path) ? root : System.IO.Path.Combine(root, path);
+            return System.IO.Path.Combine(root, path);
         }
     }
 }

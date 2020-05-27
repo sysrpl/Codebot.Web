@@ -53,10 +53,8 @@ namespace Codebot.Web
         /// <summary>
         /// Write a file using content
         /// </summary>
-        public static void FileWrite(string fileName, string content)
-        {
+        public static void FileWrite(string fileName, string content) =>
             File.WriteAllText(fileName, content);
-        }
 
         public static IUserSecurity UserSecurity { get; set; }
 
@@ -66,10 +64,7 @@ namespace Codebot.Web
         /// </summary>
         public static string HandlerType { get; set; }
 
-        static Website()
-        {
-             HandlerType = "home.dchc";
-        }
+        static Website() => HandlerType = "home.dchc";
 
         /// <summary>
         /// Context events are called in this order
@@ -119,24 +114,18 @@ namespace Codebot.Web
                 }
                 else
                 {
-                    var s = WebState.MapPath("");
+                    var s = WebState.MapPath(string.Empty);
                     if (Directory.Exists(s))
                     {
-                        if (s.Contains(".."))
-                            s = string.Empty;
-                        else
-                            s = FileRead(Path.Combine(s, HandlerType));
+                        s = s.Contains("..") ? s = string.Empty : FileRead(Path.Combine(s, HandlerType));
                         if (s.Length > 0)
                         {
                             var t = Type.GetType(s);
-                            if (t != null)
+                            if (t != null && Activator.CreateInstance(t) is BasicHandler b)
                             {
-                                if (Activator.CreateInstance(t) is BasicHandler b)
-                                {
-                                    requestHandled = true;
-                                    WebState.Attach(b);
-                                    await Task.Run(() => b.ProcessRequest(ctx));
-                                }
+                                requestHandled = true;
+                                WebState.Attach(b);
+                                await Task.Run(() => b.ProcessRequest(ctx));
                             }
                         }
                     }
@@ -200,4 +189,3 @@ namespace Codebot.Web
         }
     }
 }
-
