@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using Codebot.Xml;
@@ -8,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Codebot.Web
 {
-    public class FileUserSecurity<TUser> : IUserSecurity where TUser : WebUser, new()
+    public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, new()
     {
         protected delegate IWriter GenerateUser();
 
@@ -52,7 +50,7 @@ namespace Codebot.Web
             if (!NameCheck.IsValidPassword(password))
                 return null;
             var hash = Hasher(password);
-            lock (WebUser.Anonymous)
+            lock (BasicUser.Anonymous)
             {
                 var user = Users.Find(u => u.Name.ToLower() == lowerName);
                 if (user != null)
@@ -81,7 +79,7 @@ namespace Codebot.Web
                 return false;
             var doc = new Document();
             var fileName = WebState.AppPath(securityFile);
-            lock (WebUser.Anonymous)
+            lock (BasicUser.Anonymous)
             {
                 doc.Load(fileName);
                 var filer = doc.Force("security/users").Nodes.Add("user").Filer;
@@ -113,7 +111,7 @@ namespace Codebot.Web
             if (!NameCheck.IsValidUserName(name))
                 return false;
             var lowerName = name.ToLower();
-            lock (WebUser.Anonymous)
+            lock (BasicUser.Anonymous)
             {
                 var user = Users.Find(u => u.Name.ToLower() == lowerName);
                 if (user == null)
@@ -165,7 +163,7 @@ namespace Codebot.Web
 
         protected virtual void ApplicationStart(object sender, ContextEventArgs args)
         {
-            WebUser.Anonymous = new TUser() { Active = false, Name = "anonymous" };
+            BasicUser.Anonymous = new TUser() { Active = false, Name = "anonymous" };
             string fileName = WebState.AppPath(securityFile);
             Document doc = new Document();
             FileInfo fileInfo = new FileInfo(fileName);
@@ -179,7 +177,7 @@ namespace Codebot.Web
         }
 
         protected virtual void ApplicationStartRequest(object sender, ContextEventArgs args) =>
-            args.Context.User = WebUser.Anonymous.Restore(this, WebState.UserAgent) as ClaimsPrincipal;
+            args.Context.User = BasicUser.Anonymous.Restore(this, WebState.UserAgent) as ClaimsPrincipal;
 
         protected virtual void ApplicationFinishRequest(object sender, ContextEventArgs args) =>
             args.Context.User = null;
@@ -192,11 +190,11 @@ namespace Codebot.Web
         }
 
         HttpContext IUserSecurity.Context { get => WebState.Context; }
-        IWebUser IUserSecurity.User { get => WebState.Context.User as IWebUser; }
-        IEnumerable<IWebUser> IUserSecurity.Users { get => Users; }
+        IUser IUserSecurity.User { get => WebState.Context.User as IUser; }
+        IEnumerable<IUser> IUserSecurity.Users { get => Users; }
     }
 
-    public class BasicUserSecurity : FileUserSecurity<WebUser>
+    public class BasicUserSecurity : FileUserSecurity<BasicUser>
     {
     }
 }

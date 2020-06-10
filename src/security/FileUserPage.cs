@@ -5,95 +5,95 @@ using System.Linq;
 
 namespace Codebot.Web
 {
-	public class FileUserPage<TUser> : PageHandler where TUser : WebUser
-	{
-		public TUser User { get { return Context.User as TUser; } }
+    public class FileUserPage<TUser> : PageHandler where TUser : BasicUser
+    {
+        public TUser User { get { return Context.User as TUser; } }
 
-		public override bool IsAdmin
-		{
-			get
-			{
-				return User.IsAdmin;
-			}
-		}
+        public override bool IsAdmin
+        {
+            get
+            {
+                return User.IsAdmin;
+            }
+        }
 
-		public override bool IsAuthenticated
-		{
-			get
-			{
-				return !User.IsAnonymous;
-			}
-		}
+        public override bool IsAuthenticated
+        {
+            get
+            {
+                return !User.IsAnonymous;
+            }
+        }
 
-		protected string UserReadFile(string user, string fileName, string empty = "")
-		{
-			fileName =  WebState.AppPath($"private/data/{user}/{fileName}");
-			return File.Exists(fileName)
-				? Website.FileRead(fileName).Trim()
-				: empty;
-		}
+        protected string UserReadFile(string user, string fileName, string empty = "")
+        {
+            fileName = WebState.AppPath($"private/data/{user}/{fileName}");
+            return File.Exists(fileName)
+                ? Website.FileRead(fileName).Trim()
+                : empty;
+        }
 
-		protected void UserWriteFile(string user, string fileName, string content)
-		{
-			fileName = WebState.AppPath($"/private/data/{user}/{fileName}");
-			Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+        protected void UserWriteFile(string user, string fileName, string content)
+        {
+            fileName = WebState.AppPath($"/private/data/{user}/{fileName}");
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName));
             Website.FileWrite(fileName, content);
-		}
+        }
 
-		[Action("login")]
-		public void LoginAction()
-		{
+        [Action("login")]
+        public void LoginAction()
+        {
             var security = Website.UserSecurity;
             var name = ReadAny("name", "username", "login");
-			var password = Read("password");
-			if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(password))
-			{
-				Write("FAIL");
-				return;
-			}
-			var success = User.Login(security, name, password, WebState.UserAgent);
-			var redirect = Read("redirect");
-			if (redirect == "true")
-				Redirect("/");
-			else
-				Write(success ? "OK" : "FAIL");
-		}
-
-		[Action("logout")]
-		public void LogoutAction()
-		{
-			var security = Website.UserSecurity;
-			User.Logout(security);
-			var redirect = Read("redirect");
-			if (redirect == "true")
+            var password = Read("password");
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(password))
+            {
+                Write("FAIL");
+                return;
+            }
+            var success = User.Login(security, name, password, WebState.UserAgent);
+            var redirect = Read("redirect");
+            if (redirect == "true")
                 Redirect("/");
-			else
-				Write("OK");
-		}
+            else
+                Write(success ? "OK" : "FAIL");
+        }
 
-		[Action("users", Allow = "admin")]
-		public void UsersAction()
-		{
-			var users = new List<string>() { User.Name };
-			if (User.IsAdmin)
-			{
+        [Action("logout")]
+        public void LogoutAction()
+        {
+            var security = Website.UserSecurity;
+            User.Logout(security);
+            var redirect = Read("redirect");
+            if (redirect == "true")
+                Redirect("/");
+            else
+                Write("OK");
+        }
+
+        [Action("users", Allow = "admin")]
+        public void UsersAction()
+        {
+            var users = new List<string>() { User.Name };
+            if (User.IsAdmin)
+            {
                 var security = Website.UserSecurity;
-                lock (WebUser.Anonymous)
-				{
-					var names = security
-						.Users
-						.Select(user => user.Name)
-						.Where(name => name != User.Name)
-						.OrderBy(name => name);
-					users.AddRange(names);
-				}
-			}
-			var list = string.Join(", ", users.Select(name => $"\"{name}\""));
-			Write($"[ {list} ]");
-		}
-	}
+                lock (BasicUser.Anonymous)
+                {
+                    var names = security
+                        .Users
+                        .Select(user => user.Name)
+                        .Where(name => name != User.Name)
+                        .OrderBy(name => name);
+                    users.AddRange(names);
+                }
+            }
+            var list = string.Join(", ", users.Select(name => $"\"{name}\""));
+            Write($"[ {list} ]");
+        }
+    }
 
-    public class BasicUserPage : FileUserPage<WebUser>
+    public class BasicUserPage : FileUserPage<BasicUser>
     {
     }
 }

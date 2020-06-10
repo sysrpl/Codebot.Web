@@ -149,7 +149,7 @@ namespace Codebot.Web
             if (!IsQuery)
                 return false;
             string s = Context.Request.Query[key];
-            return !String.IsNullOrWhiteSpace(s);
+            return !string.IsNullOrWhiteSpace(s);
         }
 
         /// <summary>
@@ -301,6 +301,48 @@ namespace Codebot.Web
         }
 
         /// <summary>
+        /// The current requested path
+        /// </summary>
+        public string RequestPath { get => Context.Request.Path.Value; }
+
+        /// <summary>
+        /// Map a path to application file path
+        /// </summary>
+        public string AppPath(string path) => WebState.AppPath(path);
+
+        /// <summary>
+        /// Map a web request path to a physical file path
+        /// </summary>
+        public string MapPath(string path) => WebState.MapPath(path);
+
+		/// <summary>
+		/// Map a physical file path to a server url
+		/// </summary>
+		public string ReverseMapPath(string path)
+		{
+            string s = WebState.AppPath(string.Empty);
+            s = s.Replace("\\", "/");
+            if (s.EndsWith("/"))
+                s = s[0..^1];
+            if (path.IndexOf(s) < 0)
+                return "/";
+            path = path.Substring(path.Length);
+            if (path.StartsWith("/"))
+                return path;
+            return "/";
+		}
+
+        /// <summary>
+        /// The current ip address of the client
+        /// </summary>
+        public string IpAddress { get => Context.Connection.RemoteIpAddress.ToString(); }
+
+        /// <summary>
+        /// The current user agent of the client
+        /// </summary>
+        public string UserAgent { get => Context.Request.Headers["User-Agent"].ToString(); }
+
+        /// <summary>
         /// Returns the content type for a file
         /// </summary>
         private static string MapContentType(string fileName)
@@ -411,8 +453,8 @@ namespace Codebot.Web
             {
                 request.ContentType = Request.ContentType;
                 request.ContentLength = Request.ContentLength.Value;
-                using (var stream = request.GetRequestStream())
-                    Request.Body.CopyTo(stream);
+                using var stream = request.GetRequestStream();
+                Request.Body.CopyTo(stream);
             }
             var response = request.GetResponse();
             Response.ContentType = response.ContentType;
@@ -524,7 +566,7 @@ namespace Codebot.Web
         {
             string include = IncludeReadDirect(fileName, out bool changed);
             int start = include.IndexOf("<%include file=\"");
-            int stop = 0;
+            int stop;
             while (start > -1)
             {
                 stop = include.IndexOf("\"%>", start);
@@ -532,8 +574,8 @@ namespace Codebot.Web
                     break;
                 string head = include.Substring(0, start);
                 string tail = include.Substring(stop + 3);
-                start = start + "<%include file=\"".Length;
-                stop = stop - start;
+                start += "<%include file=\"".Length;
+                stop -= start;
                 string insert = include.Substring(start, stop);
                 include = head + IncludeReadDirect(insert, out changed) + tail;
                 start = include.IndexOf("<%include file=\"");
@@ -549,8 +591,10 @@ namespace Codebot.Web
         /// <param name="fileName">File to read and cache</param>
         /// <param name="item">Object to use with templating</param>
         /// <returns>Returns the contents of a file templated using an object</returns>
-        public string IncludeReadObject(string fileName, object item)
+        public string IncludeReadObject(string fileName, object item = null)
         {
+            if (item is null)
+                item = this;
             string s = IncludeRead(fileName);
             return s.FormatObject(item).ToString();
         }
@@ -583,7 +627,7 @@ namespace Codebot.Web
         private long SendFileData(string fileName, string contentType, bool attachment)
         {
             if (!File.Exists(fileName))
-                fileName = WebState.MapPath(fileName);
+                fileName = MapPath(fileName);
             Context.Response.Clear();
             Context.Response.ContentType = contentType;
             Context.Response.Headers.Add("Content-Length", new FileInfo(fileName).Length.ToString());

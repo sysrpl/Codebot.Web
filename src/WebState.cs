@@ -45,39 +45,45 @@ namespace Codebot.Web
         public static BasicHandler Handler { get => Context.Items[key] as BasicHandler; }
 
         /// <summary>
-        /// The current user agent
+        /// The current ip address of the client
+        /// </summary>
+        public static string IpAddress { get => Context.Connection.RemoteIpAddress.ToString(); }
+
+        /// <summary>
+        /// The current user agent of the client
         /// </summary>
         public static string UserAgent { get => Context.Request.Headers["User-Agent"].ToString(); }
 
         /// <summary>
         /// The current requested path
         /// </summary>
-        public static string Path { get => Context.Request.Path.Value; }
+        public static string RequestPath { get => Context.Request.Path.Value; }
 
         /// <summary>
         /// Map a path to application file path
         /// </summary>
         public static string AppPath(string path) =>
-            string.IsNullOrEmpty(path) ? approot : System.IO.Path.Combine(approot, path);
+            string.IsNullOrEmpty(path) ? approot : Path.Combine(approot, path);
 
         /// <summary>
         /// Map a web request path to a physical file path
         /// </summary>
+        /// <remarks>If path is empty the return value is the requested path</remarks>
         public static string MapPath(string path)
         {
             // TODO ponder blocking ".." in path for security reasons
             if (string.IsNullOrEmpty(path))
-                return webroot;
+                path = RequestPath;
             if (path.StartsWith("/"))
             {
                 path = path.Substring(1);
-                return string.IsNullOrEmpty(path) ? webroot : System.IO.Path.Combine(webroot, path);
+                return string.IsNullOrEmpty(path) ? webroot : Path.Combine(webroot, path);
             }
-            var root = Path;
+            var root = RequestPath;
             if (root.StartsWith("/"))
                 root = root.Substring(1);
-            root = string.IsNullOrEmpty(root) ? webroot : System.IO.Path.Combine(webroot, root);
-            return System.IO.Path.Combine(root, path);
+            root = string.IsNullOrEmpty(root) ? webroot : Path.Combine(webroot, root);
+            return Path.Combine(root, path);
         }
     }
 }

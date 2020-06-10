@@ -115,9 +115,10 @@ namespace Codebot.Web
                 else
                 {
                     var s = WebState.MapPath(string.Empty);
-                    if (Directory.Exists(s))
+                    s = Path.Combine(s, HandlerType);
+                    if (File.Exists(s))
                     {
-                        s = s.Contains("..") ? s = string.Empty : FileRead(Path.Combine(s, HandlerType));
+                        s = s.Contains("..") ? s = string.Empty : FileRead(s);
                         if (s.Length > 0)
                         {
                             var t = Type.GetType(s);
@@ -145,7 +146,7 @@ namespace Codebot.Web
                     throw;
             }
             if (!requestHandled)
-                await next().ConfigureAwait(false);
+                await next();
             OnFinishRequest?.Invoke(this, new ContextEventArgs(ctx));
         }
 
