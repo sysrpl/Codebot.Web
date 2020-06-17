@@ -3,18 +3,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
 
 namespace Codebot.Web
 {
-    public enum BasicUserKind
-    {
-        Anonymous = 0,
-        Guest = 1,
-        User = 2,
-        Moderator = 3,
-        Administrator = 4
-    }
-
     public class BasicUser : ClaimsPrincipal, IUser, IIdentity
     {
         private static BasicUser anonymous;
@@ -22,7 +14,11 @@ namespace Codebot.Web
         public static BasicUser Anonymous
         {
             get => anonymous;
-            set { if (anonymous == null) anonymous = value; }
+            set
+            {
+                 if (anonymous == null)
+                    anonymous = value;
+            }
         }
 
         private readonly List<string> roles;
@@ -46,6 +42,8 @@ namespace Codebot.Web
             get => string.Join(",", roles);
             set
             {
+                if (IsAnonymous)
+                    return;
                 var values = string.IsNullOrWhiteSpace(value) ? "" : Regex.Replace(value, @"\s+", "").ToLower();
                 roles.Clear();
                 roles.AddRange(values.Split(','));
@@ -59,25 +57,25 @@ namespace Codebot.Web
                 user = security.Users.FirstOrDefault(u => u.Name == name);
             if (user == null)
             {
-                Security.DeleteCredentials(security.Context);
+                Security.DeleteCredentials(WebState.Context);
                 return false;
             }
             if (!user.Active || user.Hash != Security.ComputeHash(password))
             {
-                Security.DeleteCredentials(security.Context);
+                Security.DeleteCredentials(WebState.Context);
                 return false;
             }
-            Security.WriteCredentials(security.Context, user, salt);
+            Security.WriteCredentials(WebState.Context, user, salt);
             return true;
         }
 
-        public void Logout(IUserSecurity security) => Security.DeleteCredentials(security.Context);
+        public void Logout(IUserSecurity security) => Security.DeleteCredentials(WebState.Context);
 
         public IUser Restore(IUserSecurity security, string salt)
         {
             IUser user = null;
-            var name = Security.ReadUserName(security.Context);
-            var credentials = Security.ReadCredentials(security.Context);
+            var name = Security.ReadUserName(WebState.Context);
+            var credentials = Security.ReadCredentials(WebState.Context);
             lock (Anonymous)
                 user = security.Users.FirstOrDefault(u => u.Name == name);
             if (user == null)
@@ -85,31 +83,11 @@ namespace Codebot.Web
             return Security.Match(user, salt, credentials) ? user : Anonymous;
         }
 
-        public BasicUserKind Kind
-        {
-            get
-            {
-                if (IsAnonymous)
-                    return BasicUserKind.Anonymous;
-                if (IsAdmin)
-                    return BasicUserKind.Administrator;
-                if (IsModerator)
-                    return BasicUserKind.Moderator;
-                if (IsUser)
-                    return BasicUserKind.User;
-                return BasicUserKind.Guest;
-            }
-        }
+		public HttpContext Context { get; set; }
 
         public override bool IsInRole(string role) => roles.IndexOf(role.ToLower()) > -1;
 
-        public bool IsAdmin { get => IsInRole("admin"); }
-
-        public bool IsModerator { get => IsInRole("moderator"); }
-
-        public bool IsUser { get => IsInRole("user"); }
-
-        public bool IsGuest { get => IsAdmin || IsInRole("guest"); }
+        public bool IsAdmin { get => !IsAnonymous && IsInRole("admin"); }
 
         public bool IsAnonymous { get => this == Anonymous; }
 

@@ -2,6 +2,7 @@
 #pragma warning disable RECS0063 // Warns when a culture-aware 'StartsWith' call is used by default.
 
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
 namespace Codebot.Web
@@ -25,14 +26,21 @@ namespace Codebot.Web
             WebState.accessor = accessor;
             key = new object();
             approot = Directory.GetCurrentDirectory();
-            webroot = System.IO.Path.Combine(approot, "wwwroot");
+            webroot = Path.Combine(approot, "wwwroot");
         }
 
         /// <summary>
-        /// Called every time a BasicHandler is created
+        /// Attach asynchronously processes a handler
         /// </summary>
-        public static void Attach(BasicHandler handler) =>
-            Context.Items.Add(key, handler);
+        public static async Task Attach(BasicHandler handler)
+        {
+            var c = Context;
+            if (c.Items.ContainsKey(key))
+                c.Items[key] = handler;
+            else
+                c.Items.Add(key, handler);
+            await Task.Run(() => handler.ProcessRequest(c));
+        }
 
         /// <summary>
         /// The current HttpContext

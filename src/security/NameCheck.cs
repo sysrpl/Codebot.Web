@@ -14,9 +14,7 @@ namespace Codebot.Web
 			if (userName == null)
 				return false;
 			userName = userName.ToLower();
-			if (userName == "anonymous")
-				return false;
-			if (userName.StartsWith("admin"))
+			if (Security.Roles.Contains(userName))
 				return false;
 			var length = userName.Length;
 			if (length < 5 || length > 32)
@@ -58,8 +56,7 @@ namespace Codebot.Web
 			return alphaCount > 0;
 		}
 
-		static bool IsAlpha(char c) => (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-
-		static bool IsAlphanumeric(char c) => IsAlpha(c) || (c >= '0' && c <= '9');
+		private static bool IsAlpha(char c) => (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+		private static bool IsAlphanumeric(char c) => IsAlpha(c) || (c >= '0' && c <= '9');
 	}
 }

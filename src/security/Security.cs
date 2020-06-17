@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -9,14 +10,31 @@ namespace Codebot.Web
     public static class Security
     {
         private static string secretKey;
-
         private static readonly Random random;
+        private static readonly List<string> roles;
 
         static Security()
         {
             random = new Random();
             RandomSecretKey(32);
+            roles.Add("anonymous");
+            roles.Add("admin");
         }
+
+        public static void AddRole(string role)
+        {
+            roles.Add(role);
+        }
+
+        public static IEnumerable<string> Roles
+        {
+            get
+            {
+                foreach (var r in roles)
+                    yield return r;
+            }
+        }
+
 
         public static string RandomSecretKey(int length)
         {
@@ -33,8 +51,8 @@ namespace Codebot.Web
         {
             var bytes = Encoding.UTF8.GetBytes(value);
             var key = Encoding.UTF8.GetBytes(secretKey);
-            using (var hmac = new HMACSHA256(key))
-                bytes = hmac.ComputeHash(bytes);
+            using var hmac = new HMACSHA256(key);
+            bytes = hmac.ComputeHash(bytes);
             return Convert.ToBase64String(bytes);
         }
 
@@ -55,8 +73,7 @@ namespace Codebot.Web
         public static void WriteCredentials(HttpContext context, IUser user, string salt)
         {
             string s = Credentials(user, salt);
-            CookieOptions option = new CookieOptions();
-            option.Expires = DateTime.Now.AddYears(1);
+            CookieOptions option = new CookieOptions { Expires = DateTime.Now.AddYears(1) };
             context.Response.Cookies.Append(cookieName, s, option);
         }
 

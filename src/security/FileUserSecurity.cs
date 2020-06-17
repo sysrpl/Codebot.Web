@@ -161,7 +161,7 @@ namespace Codebot.Web
             }
         }
 
-        protected virtual void ApplicationStart(object sender, ContextEventArgs args)
+		public virtual void Start(HttpContext context)
         {
             BasicUser.Anonymous = new TUser() { Active = false, Name = "anonymous" };
             string fileName = WebState.AppPath(securityFile);
@@ -176,20 +176,11 @@ namespace Codebot.Web
             doc.Save(fileName);
         }
 
-        protected virtual void ApplicationStartRequest(object sender, ContextEventArgs args) =>
-            args.Context.User = BasicUser.Anonymous.Restore(this, WebState.UserAgent) as ClaimsPrincipal;
-
-        protected virtual void ApplicationFinishRequest(object sender, ContextEventArgs args) =>
-            args.Context.User = null;
-
-        public FileUserSecurity()
+        public virtual void BeginReuqest(HttpContext context)
         {
-            Website.OnStart += ApplicationStart;
-            Website.OnStartRequest += ApplicationStartRequest;
-            Website.OnFinishRequest += ApplicationFinishRequest;
+            context.User = BasicUser.Anonymous.Restore(this, WebState.UserAgent) as ClaimsPrincipal;
         }
 
-        HttpContext IUserSecurity.Context { get => WebState.Context; }
         IUser IUserSecurity.User { get => WebState.Context.User as IUser; }
         IEnumerable<IUser> IUserSecurity.Users { get => Users; }
     }

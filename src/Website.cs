@@ -56,7 +56,10 @@ namespace Codebot.Web
         public static void FileWrite(string fileName, string content) =>
             File.WriteAllText(fileName, content);
 
-        public static IUserSecurity UserSecurity { get; set; }
+        /// <summary>
+        /// Optional user security
+        /// </summary>
+        public static IUserSecurity UserSecurity { get; private set;}
 
         /// <summary>
         /// HandlerType contains "home.dchc" but it can be adjusted to any value
@@ -70,20 +73,21 @@ namespace Codebot.Web
         /// Context events are called in this order
         /// </summary>
         public static event EventHandler<ContextEventArgs> OnStart;
-        public static event EventHandler<ContextEventArgs> OnStartRequest;
+        public static event EventHandler<ContextEventArgs> OnBeginRequest;
         public static event EventHandler<ContextEventArgs> OnProcessRequest;
         public static event EventHandler<ContextEventArgs> OnError;
-        public static event EventHandler<ContextEventArgs> OnFinishRequest;
+        public static event EventHandler<ContextEventArgs> OnEndRequest;
 
         private static bool started;
-        private void Start(HttpContext ctx)
+        private void Start(HttpContext context)
         {
             if (!started)
                 lock (locker)
                     if (!started)
                     {
                         started = true;
-                        OnStart?.Invoke(this, new ContextEventArgs(ctx));
+                        UserSecurity?.Start(context);
+                        OnStart?.Invoke(this, new ContextEventArgs(context));
                     }
         }
 
@@ -92,25 +96,25 @@ namespace Codebot.Web
         /// otherwise serve static files. We also reject attempts to read from
         /// parent folders.
         /// </summary>
-        private async Task ProcessRequest(HttpContext ctx, Func<Task> next)
+        private async Task ProcessRequest(HttpContext context, Func<Task> next)
         {
-            Start(ctx);
-            OnStartRequest?.Invoke(this, new ContextEventArgs(ctx));
+            Start(context);
+            UserSecurity?.BeginReuqest(context);
+            OnBeginRequest?.Invoke(this, new ContextEventArgs(context));
             var requestHandled = false;
             try
             {
                 IHttpHandler handler = null;
                 if (OnProcessRequest != null)
                 {
-                    var args = new ContextEventArgs(ctx);
+                    var args = new ContextEventArgs(context);
                     OnProcessRequest(this, args);
                     handler = args.Handler;
                 }
                 if (handler != null)
                 {
                     requestHandled = true;
-                    WebState.Attach(handler as BasicHandler);
-                    await Task.Run(() => handler.ProcessRequest(ctx));
+                    await WebState.Attach(handler as BasicHandler);
                 }
                 else
                 {
@@ -125,8 +129,7 @@ namespace Codebot.Web
                             if (t != null && Activator.CreateInstance(t) is BasicHandler b)
                             {
                                 requestHandled = true;
-                                WebState.Attach(b);
-                                await Task.Run(() => b.ProcessRequest(ctx));
+                                await WebState.Attach(b);
                             }
                         }
                     }
@@ -138,7 +141,7 @@ namespace Codebot.Web
                 var errorHandled = false;
                 if (OnError != null)
                 {
-                    var args = new ContextEventArgs(ctx, e);
+                    var args = new ContextEventArgs(context, e);
                     OnError(this, args);
                     errorHandled = args.Handled;
                 }
@@ -147,7 +150,7 @@ namespace Codebot.Web
             }
             if (!requestHandled)
                 await next();
-            OnFinishRequest?.Invoke(this, new ContextEventArgs(ctx));
+            OnEndRequest?.Invoke(this, new ContextEventArgs(context));
         }
 
         /// <summary>
@@ -176,6 +179,15 @@ namespace Codebot.Web
         /// Debug pages are enabled by adding --debug to Run args
         /// </summary>
         private static bool debug;
+
+        /// <summary>
+        /// Oplationally add user security
+        /// </summary>
+        public static void UseSecurity(IUserSecurity security)
+        {
+            if (UserSecurity is null)
+                UserSecurity = security;
+        }
 
         /// <summary>
         /// This is the main entry point for this framework
