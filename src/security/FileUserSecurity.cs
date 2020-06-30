@@ -61,7 +61,7 @@ namespace Codebot.Web
 
         public static TUser CurrentUser
         {
-            get => WebState.Context.User as TUser;
+            get => App.Context.User as TUser;
         }
 
         private protected static string Hasher(string value) => Security.ComputeHash(value);
@@ -78,7 +78,7 @@ namespace Codebot.Web
             if (user == null)
                 return false;
             var doc = new Document();
-            var fileName = WebState.AppPath(securityFile);
+            var fileName = App.AppPath(securityFile);
             lock (BasicUser.Anonymous)
             {
                 doc.Load(fileName);
@@ -103,7 +103,7 @@ namespace Codebot.Web
 
         public bool DeleteUser(string name)
         {
-            if (!WebState.Context.User.IsInRole("admin"))
+            if (!App.Context.User.IsInRole("admin"))
                 return false;
             if (string.IsNullOrWhiteSpace(name))
                 return false;
@@ -120,7 +120,7 @@ namespace Codebot.Web
                     return false;
                 Users.Remove(user);
                 var doc = new Document();
-                var fileName = WebState.AppPath(securityFile);
+                var fileName = App.AppPath(securityFile);
                 doc.Load(fileName);
                 var node = doc.Root.FindNode("users/user[name='" + name + "']");
                 if (node == null)
@@ -161,10 +161,10 @@ namespace Codebot.Web
             }
         }
 
-		public virtual void Start(HttpContext context)
+		public virtual void Start()
         {
             BasicUser.Anonymous = new TUser() { Active = false, Name = "anonymous" };
-            string fileName = WebState.AppPath(securityFile);
+            string fileName = App.AppPath(securityFile);
             Document doc = new Document();
             FileInfo fileInfo = new FileInfo(fileName);
             if (fileInfo.Exists)
@@ -176,12 +176,16 @@ namespace Codebot.Web
             doc.Save(fileName);
         }
 
-        public virtual void BeginReuqest(HttpContext context)
+		public virtual void Stop()
         {
-            context.User = BasicUser.Anonymous.Restore(this, WebState.UserAgent) as ClaimsPrincipal;
         }
 
-        IUser IUserSecurity.User { get => WebState.Context.User as IUser; }
+        public virtual void RestoreUser(HttpContext context)
+        {
+            context.User = BasicUser.Anonymous.Restore(this, App.UserAgent) as ClaimsPrincipal;
+        }
+
+        IUser IUserSecurity.User { get => App.Context.User as IUser; }
         IEnumerable<IUser> IUserSecurity.Users { get => Users; }
     }
 

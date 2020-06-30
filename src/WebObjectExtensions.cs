@@ -8,16 +8,14 @@ namespace Codebot.Web
 	{
 		public static string ReadBody(this HttpRequest request)
 		{
-			using (StreamReader reader = new StreamReader(request.Body))
-				return reader.ReadToEnd();
-		}
+            using StreamReader reader = new StreamReader(request.Body);
+            return reader.ReadToEnd();
+        }
 
 		public static void DeleteCookie(this HttpContext context, string key)
 		{
 			if (context.Request.Cookies[key] != null)
-			{
                 context.Response.Cookies.Delete(key);
-			}
 		}
 
 		public static string ReadCookie(this HttpContext context, string key, string defaultValue = "")

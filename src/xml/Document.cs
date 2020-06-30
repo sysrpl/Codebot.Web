@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace Codebot.Xml
 {
-    public class Document : Markup,  ICloneable
+    public class Document : Markup, ICloneable
     {
         public Document()
             : base(new XmlDocument())
@@ -27,8 +27,7 @@ namespace Codebot.Xml
         {
             get
             {
-                XmlElement node = InternalDocument.DocumentElement as XmlElement;
-                return node == null ? null : new Element(node);
+                return InternalDocument.DocumentElement is XmlElement node ? new Element(node) : null;
             }
 
             set
@@ -38,7 +37,7 @@ namespace Codebot.Xml
             }
         }
 
-		public override string Text
+        public override string Text
         {
             get
             {
@@ -121,7 +120,7 @@ namespace Codebot.Xml
         public override bool Equals(object obj)
         {
             if (obj is Document)
-                return (obj as Document).Text == Text;
+                return (obj as Document)?.Text == Text;
             return ReferenceEquals(this, obj);
         }
 
@@ -134,20 +133,14 @@ namespace Codebot.Xml
         {
             if (beautiful)
             {
-                using (MemoryStream stream = new MemoryStream())
-                using (StreamWriter streamWriter = new StreamWriter(stream))
-                {
-                    XmlWriterSettings settings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
-                    using (XmlWriter writer = XmlWriter.Create(streamWriter, settings))
-                    {
-                        InternalDocument.Save(writer);
-                    }
-                    using (StreamReader streamReader = new StreamReader(stream))
-                    {
-                        stream.Position = 0;
-                        return streamReader.ReadToEnd();
-                    }
-                }
+                using MemoryStream stream = new MemoryStream();
+                using StreamWriter streamWriter = new StreamWriter(stream);
+                XmlWriterSettings settings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
+                using XmlWriter writer = XmlWriter.Create(streamWriter, settings);
+                InternalDocument.Save(writer);
+                using StreamReader streamReader = new StreamReader(stream);
+                stream.Position = 0;
+                return streamReader.ReadToEnd();
             }
             else
                 return Text;
@@ -183,15 +176,11 @@ namespace Codebot.Xml
         {
             if (beautiful)
             {
-                using (FileStream stream = new FileStream(filename, FileMode.Create))
-                using (StreamWriter streamWriter = new StreamWriter(stream))
-                {
-                    XmlWriterSettings settings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
-                    using (XmlWriter writer = XmlWriter.Create(streamWriter, settings))
-                    {
-                        InternalDocument.Save(writer);
-                    }
-                }
+                using FileStream stream = new FileStream(filename, FileMode.Create);
+                using StreamWriter streamWriter = new StreamWriter(stream);
+                XmlWriterSettings settings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
+                using XmlWriter writer = XmlWriter.Create(streamWriter, settings);
+                InternalDocument.Save(writer);
             }
             else
                 InternalDocument.Save(filename);

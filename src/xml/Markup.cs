@@ -1,5 +1,3 @@
-using System;
-
 namespace Codebot.Xml
 {
 	public abstract class Markup : Wrapper

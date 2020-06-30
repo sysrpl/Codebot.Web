@@ -16,7 +16,7 @@ namespace Codebot.Web
         public void ProcessTemplate(HttpContext context, StringBuilder buffer)
         {
             output = buffer;
-            (this as BasicHandler).ProcessRequest(context);
+            ProcessRequest(context);
         }
 
         protected virtual void Run(Templates templates, StringBuilder output)

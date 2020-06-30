@@ -26,14 +26,13 @@ namespace Codebot.Web
 				if (Footer != null)
 					Write(Footer());
 			}
-			catch (Exception e)
-			{
-				if (Error == null) throw;
-				BasicHandler handler = Error(e) as BasicHandler;
-				if (handler == null) throw;
+            catch (Exception e) when (Error != null)
+            {
+                var handler = Error(e);
+                if (handler == null) throw;
                 Response.Clear();
-				handler.ProcessRequest(Context);
-			}
-		}
+                handler.ProcessRequest(Context);
+            }
+        }
 	}
 }

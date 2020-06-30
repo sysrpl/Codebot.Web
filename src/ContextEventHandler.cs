@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
 namespace Codebot.Web
@@ -14,8 +13,9 @@ namespace Codebot.Web
         public ContextEventArgs(HttpContext context, Exception error = null)
         {
             Context = context;
-            Handler = null;
             Error = error;
+            Handler = null;
+            Handled = false;
         }
     }
 }

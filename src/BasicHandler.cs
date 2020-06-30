@@ -22,9 +22,9 @@ namespace Codebot.Web
         public delegate object QuerySectionsFunc(BasicHandler handler);
         public delegate object FindObjectFunc(string key);
 
-        static readonly Dictionary<string, object> objects;
-        static readonly Dictionary<string, DateTime> includeLog;
-        static readonly Dictionary<string, string> includeData;
+        private static readonly Dictionary<string, object> objects;
+        private static readonly Dictionary<string, DateTime> includeLog;
+        private static readonly Dictionary<string, string> includeData;
 
         /// <summary>
         /// Initialize the BasicHandler class type
@@ -72,7 +72,7 @@ namespace Codebot.Web
         public bool IsForm => IsPost && Context.Request.Form.Count > 0;
 
         /// <summary>
-        /// Returns true if the request is plain, that is not a POST, QUERY, or FORM 
+        /// Returns true if the request is plain, that is not a POST, QUERY, or FORM
         /// </summary>
         public bool IsPlainRequest => !IsPost && !IsQuery && !IsForm;
 
@@ -174,7 +174,7 @@ namespace Codebot.Web
         /// <summary>
         /// Tries to reads T from the request with a default value
         /// </summary>
-        public bool TryRead<T>(string key, out T result, T defaultValue = default(T))
+        public bool TryRead<T>(string key, out T result, T defaultValue = default)
         {
             var s = string.Empty;
             if (IsQuery)
@@ -201,7 +201,7 @@ namespace Codebot.Web
         /// <summary>
         /// Reads T from the request with a default value
         /// </summary>
-        public T Read<T>(string key, T defaultValue = default(T))
+        public T Read<T>(string key, T defaultValue = default)
         {
             TryRead(key, out T result, defaultValue);
             return result;
@@ -210,7 +210,7 @@ namespace Codebot.Web
         /// <summary>
         /// Reads an int from the request with a default value
         /// </summary>
-        public int ReadInt(string key, int defaultValue = default(int))
+        public int ReadInt(string key, int defaultValue = default)
         {
             TryRead(key, out int result, defaultValue);
             return result;
@@ -229,9 +229,8 @@ namespace Codebot.Web
         /// </summary>
         public string ReadAny(params string[] keys)
         {
-            string result;
             foreach (string key in keys)
-                if (TryRead(key, out result))
+                if (TryRead(key, out string result))
                     return result;
             return string.Empty;
         }
@@ -250,8 +249,8 @@ namespace Codebot.Web
         /// </summary>
         public string ReadBody()
         {
-            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
-                return reader.ReadToEnd();
+            using StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8);
+            return reader.ReadToEnd();
         }
 
         /// <summary>
@@ -308,19 +307,19 @@ namespace Codebot.Web
         /// <summary>
         /// Map a path to application file path
         /// </summary>
-        public string AppPath(string path) => WebState.AppPath(path);
+        public string AppPath(string path) => App.AppPath(path);
 
         /// <summary>
         /// Map a web request path to a physical file path
         /// </summary>
-        public string MapPath(string path) => WebState.MapPath(path);
+        public string MapPath(string path) => App.MapPath(path);
 
 		/// <summary>
 		/// Map a physical file path to a server url
 		/// </summary>
 		public string ReverseMapPath(string path)
 		{
-            string s = WebState.AppPath(string.Empty);
+            string s = App.AppPath();
             s = s.Replace("\\", "/");
             if (s.EndsWith("/"))
                 s = s[0..^1];
@@ -388,7 +387,6 @@ namespace Codebot.Web
                 case "mp4":
                     return "video/mp4";
                 case "mpeg":
-                    return "video/mpeg";
                 case "mpg":
                     return "video/mpeg";
                 case "ogg":
@@ -445,7 +443,7 @@ namespace Codebot.Web
             var items = Request
                 .Query
                 .Keys
-                .Select(key => $"{key}={Request.Query[key].ToString()}");
+                .Select(key => $"{key}={Request.Query[key]}");
             var query = string.Join("&", items);
             var request = WebRequest.Create($"{url}/?{query}");
             request.Method = Request.Method;
@@ -499,13 +497,13 @@ namespace Codebot.Web
         /// Returns true if a file exists
         /// </summary>
         /// <param name="fileName">The filename to be mapped</param>
-        public bool FileExists(string fileName) => File.Exists(WebState.MapPath(fileName));
+        public bool FileExists(string fileName) => File.Exists(App.MapPath(fileName));
 
         /// <summary>
         /// Returns true if a folder exists
         /// </summary>
         /// <param name="folder">The folder to be mapped</param>
-        public bool FolderExists(string folder) => Directory.Exists(WebState.MapPath(folder));
+        public bool FolderExists(string folder) => Directory.Exists(App.MapPath(folder));
 
         /// <summary>
         /// Read and caches the contents of a file without includes or templates
@@ -516,7 +514,7 @@ namespace Codebot.Web
         public string IncludeReadDirect(string fileName, out bool changed)
         {
             string data = string.Empty;
-            fileName = WebState.MapPath(fileName);
+            fileName = App.MapPath(fileName);
             lock (includeLog)
             {
                 DateTime change = File.GetLastWriteTime(fileName);
@@ -553,7 +551,7 @@ namespace Codebot.Web
         /// <returns>Returns the exact contents of a file</returns>
         public string IncludeReadDirect(string fileName)
         {
-            return IncludeReadDirect(fileName, out bool changed);
+            return IncludeReadDirect(fileName, out _);
         }
 
         /// <summary>
@@ -564,7 +562,7 @@ namespace Codebot.Web
         /// <returns>Returns the contents of a file with include files</returns>
         public string IncludeRead(string fileName, params object[] args)
         {
-            string include = IncludeReadDirect(fileName, out bool changed);
+            string include = IncludeReadDirect(fileName, out _);
             int start = include.IndexOf("<%include file=\"");
             int stop;
             while (start > -1)
@@ -577,7 +575,7 @@ namespace Codebot.Web
                 start += "<%include file=\"".Length;
                 stop -= start;
                 string insert = include.Substring(start, stop);
-                include = head + IncludeReadDirect(insert, out changed) + tail;
+                include = head + IncludeReadDirect(insert, out _) + tail;
                 start = include.IndexOf("<%include file=\"");
             }
             if (args.Length > 0)
@@ -617,7 +615,7 @@ namespace Codebot.Web
         /// </summary>
         public void Redirect(string url = "")
         {
-            if (url == "")
+            if (string.IsNullOrWhiteSpace(url))
                 url = Request.Headers["Referer"].ToString();
             Context.Response.Redirect(url, false);
         }
@@ -752,7 +750,7 @@ namespace Codebot.Web
         protected abstract void Run();
 
         /// <summary>
-        /// Render is invoked by ProcessRequest() and in turn invokes Run() 
+        /// Render is invoked by ProcessRequest() and in turn invokes Run()
         /// </summary>
         protected virtual void Render()
         {

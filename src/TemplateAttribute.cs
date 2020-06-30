@@ -17,7 +17,7 @@ namespace Codebot.Web
             Items = items.ToArray();
         }
 
-        public Template[] Items { get; private set; }
+        public Template[] Items { get; }
     }
 
     public class Template
@@ -28,12 +28,12 @@ namespace Codebot.Web
             Resource = TemplateAttribute.TemplateFolder + name + TemplateAttribute.TemplateExtension;
         }
 
-        public string Name { get; private set; }
-        public string Resource { get; private set; }
+        public string Name { get; }
+        public string Resource { get; }
 
         public static string FileName(string templateName)
         {
-            return WebState.MapPath(TemplateAttribute.TemplateFolder + templateName + TemplateAttribute.TemplateExtension);
+            return App.MapPath(TemplateAttribute.TemplateFolder + templateName + TemplateAttribute.TemplateExtension);
         }
     }
 }

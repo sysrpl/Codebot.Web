@@ -5,9 +5,10 @@ namespace Codebot.Web
 {
 	public interface IUserSecurity
 	{
+		void Start();
+		void RestoreUser(HttpContext context);
+		void Stop();
         IUser User { get; }
 		IEnumerable<IUser> Users { get; }
-		void Start(HttpContext context);
-		void BeginReuqest(HttpContext context);
 	}
 }

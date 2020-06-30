@@ -17,8 +17,11 @@ namespace Codebot.Web
         {
             random = new Random();
             RandomSecretKey(32);
-            roles.Add("anonymous");
-            roles.Add("admin");
+            roles = new List<string>
+            {
+                "anonymous",
+                "admin"
+            };
         }
 
         public static void AddRole(string role)
@@ -34,7 +37,6 @@ namespace Codebot.Web
                     yield return r;
             }
         }
-
 
         public static string RandomSecretKey(int length)
         {

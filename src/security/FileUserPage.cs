@@ -27,23 +27,23 @@ namespace Codebot.Web
 
         protected string UserReadFile(string user, string fileName, string empty = "")
         {
-            fileName = WebState.AppPath($"private/data/{user}/{fileName}");
+            fileName = App.AppPath($"private/data/{user}/{fileName}");
             return File.Exists(fileName)
-                ? Website.FileRead(fileName).Trim()
+                ? App.Read(fileName).Trim()
                 : empty;
         }
 
         protected void UserWriteFile(string user, string fileName, string content)
         {
-            fileName = WebState.AppPath($"/private/data/{user}/{fileName}");
+            fileName = App.AppPath($"/private/data/{user}/{fileName}");
             Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-            Website.FileWrite(fileName, content);
+            App.Write(fileName, content);
         }
 
         [Action("login")]
         public void LoginAction()
         {
-            var security = Website.UserSecurity;
+            var security = App.Security;
             var name = ReadAny("name", "username", "login");
             var password = Read("password");
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(password))
@@ -51,7 +51,7 @@ namespace Codebot.Web
                 Write("FAIL");
                 return;
             }
-            var success = User.Login(security, name, password, WebState.UserAgent);
+            var success = User.Login(security, name, password, App.UserAgent);
             var redirect = Read("redirect");
             if (redirect == "true")
                 Redirect("/");
@@ -62,7 +62,7 @@ namespace Codebot.Web
         [Action("logout")]
         public void LogoutAction()
         {
-            var security = Website.UserSecurity;
+            var security = App.Security;
             User.Logout(security);
             var redirect = Read("redirect");
             if (redirect == "true")
@@ -77,7 +77,7 @@ namespace Codebot.Web
             var users = new List<string>() { User.Name };
             if (User.IsAdmin)
             {
-                var security = Website.UserSecurity;
+                var security = App.Security;
                 lock (BasicUser.Anonymous)
                 {
                     var names = security

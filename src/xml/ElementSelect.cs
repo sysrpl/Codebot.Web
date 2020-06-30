@@ -5,7 +5,7 @@ namespace Codebot.Xml
 {
 	public class ElementSelect : Elements
 	{
-		private XmlNodeList list;
+		private readonly XmlNodeList list;
 
 		internal ElementSelect(XmlNodeList list, XmlNode node) : base(node)
 		{

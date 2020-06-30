@@ -69,12 +69,12 @@ namespace Codebot.Web
             if (val.Length == 0)
                 throw new ArgumentException(expr + " is not a valid indexed expression.");
 
-            bool is_string = false;
+            bool isString = false;
             // a quoted val means we have a string
             if ((val[0] == '\'' && val[^1] == '\'') ||
                 (val[0] == '\"' && val[^1] == '\"'))
             {
-                is_string = true;
+                isString = true;
                 val = val[1..^1];
             }
             else
@@ -83,17 +83,17 @@ namespace Codebot.Web
                 for (int i = 0; i < val.Length; i++)
                     if (!Char.IsDigit(val[i]))
                     {
-                        is_string = true;
+                        isString = true;
                         break;
                     }
             }
 
             int intVal = 0;
-            if (!is_string)
+            if (!isString)
             {
                 try
                 {
-                    intVal = Int32.Parse(val);
+                    intVal = int.Parse(val);
                 }
                 catch
                 {
@@ -112,12 +112,11 @@ namespace Codebot.Web
             if (container == null)
                 return null;
 
-            if (container is IList)
+            if (container is IList list)
             {
-                if (is_string)
+                if (isString)
                     throw new ArgumentException(expr + " cannot be indexed with a string.");
-                IList l = (IList)container;
-                return l[intVal];
+                return list[intVal];
             }
 
             Type t = container.GetType();
@@ -129,12 +128,12 @@ namespace Codebot.Web
             else
                 property = ((DefaultMemberAttribute)attrs[0]).MemberName;
 
-            Type[] argTypes = { (is_string) ? typeof(string) : typeof(int) };
+            Type[] argTypes = { isString ? typeof(string) : typeof(int) };
             PropertyInfo prop = t.GetProperty(property, argTypes);
             if (prop == null)
                 throw new ArgumentException(expr + " indexer not found.");
             object[] args = new object[1];
-            if (is_string)
+            if (isString)
                 args[0] = val;
             else
                 args[0] = intVal;
@@ -177,25 +176,23 @@ namespace Codebot.Web
             foundDataItem = false;
             if (container == null)
                 return null;
-
             if (dataItemCache == null)
                 dataItemCache = new Dictionary<Type, PropertyInfo>();
-
             Type type = container.GetType();
             if (!dataItemCache.TryGetValue(type, out PropertyInfo pi))
             {
                 pi = type.GetProperty("DataItem", BindingFlags.Public | BindingFlags.Instance);
                 dataItemCache[type] = pi;
             }
-
             if (pi == null)
                 return null;
-
             foundDataItem = true;
-
             return pi.GetValue(container, null);
         }
 
-        public static object GetDataItem(object container) => GetDataItem(container, out bool flag);
+        public static object GetDataItem(object container)
+        {
+            return GetDataItem(container, out bool _);
+        }
     }
 }

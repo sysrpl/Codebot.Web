@@ -146,8 +146,7 @@ namespace Codebot.Xml
 
 		public void Replace(T oldNode, T newNode)
 		{
-			if (newNode.InternalNode.ParentNode != null)
-				newNode.InternalNode.ParentNode.RemoveChild(newNode.InternalNode);
+			newNode.InternalNode.ParentNode?.RemoveChild(newNode.InternalNode);
 			InternalNode.InsertBefore(oldNode.InternalNode, newNode.InternalNode);
 			InternalNode.RemoveChild(oldNode.InternalNode);
 		}

@@ -94,7 +94,7 @@ namespace Codebot.Web
         }
 
         /// <summary>
-        /// Check the ActionPage for allow rights 
+        /// Check the ActionPage for allow rights
         /// </summary>
         private bool Allow(ActionAttribute a)
         {

@@ -57,25 +57,25 @@ namespace Codebot.Web
                 user = security.Users.FirstOrDefault(u => u.Name == name);
             if (user == null)
             {
-                Security.DeleteCredentials(WebState.Context);
+                Security.DeleteCredentials(App.Context);
                 return false;
             }
             if (!user.Active || user.Hash != Security.ComputeHash(password))
             {
-                Security.DeleteCredentials(WebState.Context);
+                Security.DeleteCredentials(App.Context);
                 return false;
             }
-            Security.WriteCredentials(WebState.Context, user, salt);
+            Security.WriteCredentials(App.Context, user, salt);
             return true;
         }
 
-        public void Logout(IUserSecurity security) => Security.DeleteCredentials(WebState.Context);
+        public void Logout(IUserSecurity security) => Security.DeleteCredentials(App.Context);
 
         public IUser Restore(IUserSecurity security, string salt)
         {
             IUser user = null;
-            var name = Security.ReadUserName(WebState.Context);
-            var credentials = Security.ReadCredentials(WebState.Context);
+            var name = Security.ReadUserName(App.Context);
+            var credentials = Security.ReadCredentials(App.Context);
             lock (Anonymous)
                 user = security.Users.FirstOrDefault(u => u.Name == name);
             if (user == null)

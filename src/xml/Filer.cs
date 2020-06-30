@@ -26,8 +26,7 @@ namespace Codebot.Xml
 
         public T Read<T>(string name, T value = default, bool stored = true)
         {
-            T result;
-            bool parsed = Converter.TryConvert(ReadValue(name, stored), out result);
+            bool parsed = Converter.TryConvert(ReadValue(name, stored), out T result);
             if (stored)
                 if (parsed)
                     WriteValue(name, result.ToString());
@@ -41,15 +40,14 @@ namespace Codebot.Xml
         public string[] ReadValues(params string[] args)
         {
             string[] values = (string[])Array.CreateInstance(typeof(string), args.Length);
-            for (int i = 0; i < (args.Length); i++)
+            for (int i = 0; i < args.Length; i++)
                 values[i] = ReadString(args[i]);
             return values;
         }
 
         public DateTime ReadDate(string name, DateTime value = default, bool stored = true)
         {
-            DateTime result;
-            if (!DateTime.TryParse(ReadValue(name, stored), out result))
+            if (!DateTime.TryParse(ReadValue(name, stored), out DateTime result))
             {
                 result = value == default ? DateTime.Now : value;
                 if (stored) WriteValue(name, result.ToString());
@@ -61,8 +59,7 @@ namespace Codebot.Xml
 
         public int ReadInt(string name, int value = 0, bool stored = true)
         {
-            int result;
-            bool parsed = int.TryParse(ReadValue(name, value.ToString(), stored), out result);
+            var parsed = int.TryParse(ReadValue(name, value.ToString(), stored), out int result);
             if (!parsed)
             {
                 result = value;
@@ -75,8 +72,7 @@ namespace Codebot.Xml
 
         public long ReadLong(string name, long value = 0, bool stored = true)
         {
-            long result;
-            bool parsed = long.TryParse(ReadValue(name, value.ToString(), stored), out result);
+            var parsed = long.TryParse(ReadValue(name, value.ToString(), stored), out long result);
             if (!parsed)
             {
                 result = value;

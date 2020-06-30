@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace Codebot.Web
 {
-    class HtmlStringTypeConverter : TypeConverter
+    public class HtmlStringTypeConverter : TypeConverter
     {
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
         {
