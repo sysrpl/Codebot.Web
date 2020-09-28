@@ -24,7 +24,7 @@ namespace Test
     {
         public static void Main(string[] args)
         {
-            Website.Run(args);
+            App.Run(args);
         }
     }
 }
@@ -95,7 +95,7 @@ namespace Test
         
         public static void Main(string[] args)
         {
-            Website.Run(args);
+            App.Run(args);
         }
     }
 }
