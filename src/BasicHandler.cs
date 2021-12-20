@@ -436,36 +436,6 @@ public abstract class BasicHandler : IHttpHandler
     }
 
     /// <summary>
-    /// Forwards the request to another server using a url and optional write the result back.
-    /// </summary>
-    /// <param name="url">The url of the server location to forward input to.</param>
-    /// <param name="forwardResponse">If forward response is true, then write back the output.</param>
-    public void ForwardRequest(string url, bool forwardResponse)
-    {
-        var items = Request
-            .Query
-            .Keys
-            .Select(key => $"{key}={Request.Query[key]}");
-        var query = string.Join("&", items);
-        var request = HttpWebRequest.Create($"{url}/?{query}");
-        request.Method = Request.Method;
-        if (Request.ContentLength > 0)
-        {
-            request.ContentType = Request.ContentType;
-            request.ContentLength = Request.ContentLength.Value;
-            using var stream = request.GetRequestStream();
-            Request.Body.CopyTo(stream);
-        }
-        var response = request.GetResponse();
-        Response.ContentType = response.ContentType;
-        using (var stream = response.GetResponseStream())
-            if (forwardResponse)
-                stream?.CopyTo(Response.Body);
-            else
-                stream?.ReadByte();
-    }
-
-    /// <summary>
     /// Finds an object based on a key and find function
     /// </summary>
     /// <returns>The object either from cache or the find function</returns>

@@ -22,7 +22,7 @@ using Codebot.Web;
 [DefaultPage("home.html")]
 public class Hello : PageHandler
 {
-	public static void Main(string[] args) => App.Run(args);
+  public static void Main(string[] args) => App.Run(args);
 }
 ```
 
