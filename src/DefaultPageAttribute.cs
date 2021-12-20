@@ -1,9 +1,6 @@
-﻿using System;
+﻿namespace Codebot.Web;
 
-namespace Codebot.Web
+public class DefaultPageAttribute : PageTypeAttribute
 {
-	public class DefaultPageAttribute : PageTypeAttribute
-	{
-		public DefaultPageAttribute(string fileName) : base(fileName) { }
-	}
+	public DefaultPageAttribute(string fileName) : base(fileName) { }
 }

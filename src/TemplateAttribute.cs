@@ -1,39 +1,39 @@
-﻿using System;
+﻿namespace Codebot.Web;
+
+using System;
 using System.Collections.Generic;
 
-namespace Codebot.Web
+
+[AttributeUsage(AttributeTargets.Class,  AllowMultiple = true)]
+public sealed class TemplateAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class,  AllowMultiple = true)]
-    public class TemplateAttribute : Attribute
+    public static string TemplateFolder = "/templates/";
+    public static string TemplateExtension = ".template";
+
+    public TemplateAttribute(params string[] names)
     {
-        public static string TemplateFolder = "/templates/";
-        public static string TemplateExtension = ".template";
-
-        public TemplateAttribute(params string[] names)
-        {
-            List<Template> items = new List<Template>();
-            foreach (var n in names)
-                items.Add(new Template(n));
-            Items = items.ToArray();
-        }
-
-        public Template[] Items { get; }
+        List<Template> items = new List<Template>();
+        foreach (var n in names)
+            items.Add(new Template(n));
+        Items = items.ToArray();
     }
 
-    public class Template
+    public Template[] Items { get; }
+}
+
+public sealed class Template
+{
+    public Template(string name)
     {
-        public Template(string name)
-        {
-            Name = name;
-            Resource = TemplateAttribute.TemplateFolder + name + TemplateAttribute.TemplateExtension;
-        }
+        Name = name;
+        Resource = TemplateAttribute.TemplateFolder + name + TemplateAttribute.TemplateExtension;
+    }
 
-        public string Name { get; }
-        public string Resource { get; }
+    public string Name { get; }
+    public string Resource { get; }
 
-        public static string FileName(string templateName)
-        {
-            return App.MapPath(TemplateAttribute.TemplateFolder + templateName + TemplateAttribute.TemplateExtension);
-        }
+    public static string FileName(string templateName)
+    {
+        return App.MapPath(TemplateAttribute.TemplateFolder + templateName + TemplateAttribute.TemplateExtension);
     }
 }

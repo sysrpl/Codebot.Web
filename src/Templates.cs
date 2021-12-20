@@ -1,24 +1,20 @@
-﻿namespace Codebot.Web
+﻿namespace Codebot.Web;
+
+public class Templates
 {
-    public class Templates
+    public static string TemplateFolder = "/templates/";
+    public static string TemplateExtension = ".template";
+
+    public delegate string TemplateLoad(string fileName);
+    private readonly TemplateLoad load;
+
+    public Templates(TemplateLoad load)
     {
-        public static string TemplateFolder = "/templates/";
-        public static string TemplateExtension = ".template";
+        this.load = load;
+    }
 
-        public delegate string TemplateLoad(string fileName);
-        private readonly TemplateLoad load;
-
-        public Templates(TemplateLoad load)
-        {
-            this.load = load;
-        }
-
-        public string this[string key]
-        {
-            get
-            {
-                return load(TemplateFolder + key + TemplateExtension);
-            }
-        }
+    public string this[string key]
+    {
+        get => load(TemplateFolder + key + TemplateExtension);
     }
 }

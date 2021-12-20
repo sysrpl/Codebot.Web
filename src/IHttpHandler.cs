@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿namespace Codebot.Web;
 
-namespace Codebot.Web
+using Microsoft.AspNetCore.Http;
+
+public interface IHttpHandler
 {
-    public interface IHttpHandler
-    {
-        void ProcessRequest(HttpContext context);
-    }
+    void ProcessRequest(HttpContext context);
 }
