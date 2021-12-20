@@ -15,18 +15,14 @@ In Test.csproj place:
 In Hello.cs place:
 
 ```csharp
+namespace Test;
+
 using Codebot.Web;
 
-namespace Test
+[DefaultPage("home.html")]
+public class Hello : PageHandler
 {
-    [DefaultPage("home.html")]
-    public class Hello : PageHandler
-    {
-        public static void Main(string[] args)
-        {
-            Website.Run(args);
-        }
-    }
+	public static void Main(string[] args) => App.Run(args);
 }
 ```
 
