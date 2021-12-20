@@ -5,9 +5,10 @@ A simple framework to create websites using ASP.NET core. To create a new websit
 In Test.csproj place:
 
 ```xml
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 </Project>
 ```
@@ -51,9 +52,9 @@ Using the simple example above you would have the following directory and file s
 |
 +- Test
    |
-   +- Test.csproj 
+   +- Test.csproj
    |
-   +- Hello.cs 
+   +- Hello.cs
    |
    +- wwwroot
       |
@@ -92,7 +93,7 @@ namespace Test
         {
             Write("Hello World!");
         }
-        
+
         public static void Main(string[] args)
         {
             Website.Run(args);
@@ -167,7 +168,7 @@ In addition to using this framework to generate templated responses, it can also
 
 ```csharp
     [Action("hello")]
-    public void HelloAction() => Write("Hello World!"); 
+    public void HelloAction() => Write("Hello World!");
 ```
 
 If the client then submits a request with an action named ``hello`` it will receive back ``Hello World!``. Here is what a request to our action would look:
@@ -186,7 +187,7 @@ In the web action example above we simply returned some static text. A dynamic r
       string userId = ReadInt("userId");
       string product = ReadString("item");
       int count = ReadInt("qty");
-      DateTime deliveryDate = Read<DateTime>("deliveryDate"); 
+      DateTime deliveryDate = Read<DateTime>("deliveryDate");
       var json = SubmitOrder(userId, product, count, deliveryDate);
       ContentType = "text/json";
       Write(json);
@@ -245,7 +246,7 @@ Serving different templates based on some state of your website:
         if (StoreIsOpened)
           // If we are opened include the storefront and format it as a template
           Include("/templates/storefront.html", true);
-        else          
+        else
           // Otherwise send the static we're closed page
           Include("/templates/wereclosed.html");
     }
