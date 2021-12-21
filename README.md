@@ -78,22 +78,15 @@ A simple way to serve a web page from your handler class is to decorate it with 
 It should be noted that the ``DefaultPage`` attribute is completely optional. If you wanted to generate the page yourself through code. You could override the ``EmptyPage`` method and write a response manually using the following:
 
 ```csharp
+namespace Test;
+
 using Codebot.Web;
 
-namespace Test
+public class Hello : PageHandler
 {
-    public class Hello : PageHandler
-    {
-        protected override void EmptyPage()
-        {
-            Write("Hello World!");
-        }
+    protected override void EmptyPage() => Write("Hello World!");
 
-        public static void Main(string[] args)
-        {
-            App.Run(args);
-        }
-    }
+    public static void Main(string[] args) => App.Run(args);
 }
 ```
 
