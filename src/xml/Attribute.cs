@@ -1,30 +1,20 @@
+namespace Codebot.Xml;
+
 using System.Xml;
 
-namespace Codebot.Xml
+public class Attribute : Node
 {
-	public class Attribute : Node
+	internal Attribute(XmlAttribute node)
+		: base(node)
 	{
-		internal Attribute(XmlAttribute node)
-			: base(node)
-		{
-		}
-
-		internal XmlAttribute InternalAttribute
-		{
-			get
-			{
-				return (XmlAttribute)Controller;
-			}
-		}
-
-		public static implicit operator XmlAttribute(Attribute attribute)
-		{
-			return attribute.InternalAttribute;
-		}
-
-		public static implicit operator Attribute(XmlAttribute attribute)
-		{
-			return new Attribute(attribute);
-		}
 	}
+
+	internal XmlAttribute InternalAttribute
+	{
+		get => (XmlAttribute)Controller;
+	}
+
+	public static implicit operator XmlAttribute(Attribute attribute) => attribute.InternalAttribute;
+
+	public static implicit operator Attribute(XmlAttribute attribute) => new Attribute(attribute);
 }

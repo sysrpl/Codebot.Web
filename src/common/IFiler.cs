@@ -1,6 +1,3 @@
-﻿namespace Codebot
-{
-    public interface IFiler : IReader, IWriter
-    {
-    }
-}
+﻿namespace Codebot;
+
+public interface IFiler : IReader, IWriter { }

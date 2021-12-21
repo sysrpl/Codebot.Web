@@ -1,18 +1,17 @@
+namespace Codebot.Xml;
+
 using System;
 
-namespace Codebot.Xml
+public class Wrapper
 {
-    public class Wrapper
+	internal Wrapper()
 	{
-		internal Wrapper()
-		{
-		}
-
-		internal Wrapper(object controller)
-        {
-            Controller = controller ?? throw new NullReferenceException();
-		}
-
-		internal object Controller { get; set; }
 	}
+
+	internal Wrapper(object controller)
+	{
+		Controller = controller ?? throw new NullReferenceException();
+	}
+
+	internal object Controller { get; set; }
 }
