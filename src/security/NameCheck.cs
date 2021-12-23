@@ -11,7 +11,7 @@ public static class NameCheck
 {
 	public static bool IsValidUserName(string userName)
 	{
-		if (userName == null)
+		if (userName is null)
 			return false;
 		userName = userName.ToLower();
 		if (Security.Roles.Contains(userName))
@@ -38,7 +38,7 @@ public static class NameCheck
 
 	public static bool IsValidPassword(string password)
 	{
-		if (password == null)
+		if (password is null)
 			return false;
 		var length = password.Length;
 		if (length < 5 || length > 32)

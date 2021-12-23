@@ -69,7 +69,7 @@ public class Node : Markup
         for (int i = 0; i < items.Length; i++)
         {
             child = parent.SelectSingleNode(items[i]) as XmlElement;
-            if (child != null)
+            if (child is not null)
             {
                 parent = child;
                 continue;

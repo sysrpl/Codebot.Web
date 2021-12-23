@@ -17,7 +17,7 @@ internal class AttributeFiler : Filer
 	protected override string ReadValue(string name, string value, bool stored)
 	{
 		var node = InternalAttributes.GetNamedItem(name);
-		if ((node == null) && stored)
+		if ((node is null) && stored)
 		{
 			node = InternalNode.OwnerDocument.CreateAttribute(name);
 			InternalAttributes.SetNamedItem(node);

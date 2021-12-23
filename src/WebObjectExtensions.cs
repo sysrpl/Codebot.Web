@@ -14,7 +14,7 @@ public static class WebObjectExtensions
 
 	public static void DeleteCookie(this HttpContext context, string key)
 	{
-		if (context.Request.Cookies[key] != null)
+		if (context.Request.Cookies[key] is not null)
 			context.Response.Cookies.Delete(key);
 	}
 

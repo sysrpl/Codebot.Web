@@ -30,7 +30,7 @@ public class TemplateHandler : BasicHandler
 
     public override string ToString()
     {
-        if (output == null)
+        if (output is null)
             ProcessTemplate(Context, new StringBuilder());
         return output.ToString();
     }

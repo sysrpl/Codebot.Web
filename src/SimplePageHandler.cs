@@ -20,16 +20,16 @@ public abstract class SimplePageHandler : BasicHandler
 		ContentType = "text/html";
 		try
 		{
-			if (Header != null)
+			if (Header is not null)
 				Write(Header());
 			base.Render();
-			if (Footer != null)
+			if (Footer is not null)
 				Write(Footer());
 		}
-		catch (Exception e) when (Error != null)
+		catch (Exception e) when (Error is not null)
 		{
 			var handler = Error(e);
-			if (handler == null) throw;
+			if (handler is null) throw;
 			Response.Clear();
 			handler.ProcessRequest(Context);
 		}

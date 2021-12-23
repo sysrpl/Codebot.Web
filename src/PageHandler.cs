@@ -36,7 +36,7 @@ public class PageHandler : BasicHandler
     private bool InvokePageType<T>() where T : PageTypeAttribute
     {
         var pageType = GetType().GetCustomAttribute<T>(true);
-        if (pageType != null)
+        if (pageType is not null)
         {
             if (Deny(pageType) || (!Allow(pageType)))
                 OnDeny(String.Empty);
@@ -75,16 +75,13 @@ public class PageHandler : BasicHandler
     /// A page or action was denied
     /// </summary>
     /// <param name="actionName">actionName will be null if a page was denied</param>
-    protected virtual void OnDeny(string actionName)
-    {
-        Context.Response.StatusCode = 401;
-    }
+    protected virtual void OnDeny(string actionName) => Context.Response.StatusCode = IsAuthenticated ? 403 : 401;
 
     /// <summary>
     /// A page or action was allowed
     /// </summary>
     /// <param name="actionName">actionName will be null if a page was allowed</param>
-    protected virtual void OnAllow(string actionName) { }
+    protected virtual void OnAllow(string actionName) => Context.Response.StatusCode = 200;
 
     /// <summary>
     /// Check for deny of an action or page
@@ -96,7 +93,7 @@ public class PageHandler : BasicHandler
             return false;
         var list = deny.Split(",").Select(s => s.Trim().ToLower());
         var user = Context.User;
-        if (user == null)
+        if (user is null)
             return list.Contains("anonymous");
         foreach (var role in list)
             if (user.IsInRole(role))
@@ -114,7 +111,7 @@ public class PageHandler : BasicHandler
             return true;
         var list = allow.Split(",").Select(s => s.Trim().ToLower());
         var user = Context.User;
-        if (user == null)
+        if (user is null)
             return list.Contains("anonymous");
         foreach (var role in list)
             if (user.IsInRole(role))
@@ -131,8 +128,8 @@ public class PageHandler : BasicHandler
         {
             var attribute = Array.Find(
                 action.GetCustomAttributes<ActionAttribute>(true),
-                a => a.ActionName.ToLower() == actionName);
-            if (attribute != null)
+                a => a.ActionName.ToLower().Equals(actionName));
+            if (attribute is not null)
             {
                 if (Deny(attribute) || (!Allow(attribute)))
                     OnDeny(actionName);

@@ -53,7 +53,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         lock (BasicUser.Anonymous)
         {
             var user = Users.Find(u => u.Name.ToLower() == lowerName);
-            if (user != null)
+            if (user is not null)
                 return null;
         }
         return new TUser() { Active = true, Name = name, Hash = hash, Roles = roles };
@@ -75,7 +75,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
     public bool AddUser(Dictionary<string, string> args)
     {
         var user = CreateUser(args);
-        if (user == null)
+        if (user is null)
             return false;
         var doc = new Document();
         var fileName = App.AppPath(securityFile);
@@ -104,7 +104,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
     public bool DeleteUser(string name)
     {
         var user = CurrentUser;
-        if (user == null)
+        if (user is null)
             return false;
         if (!user.IsInRole("admin"))
             return false;
@@ -117,7 +117,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         lock (BasicUser.Anonymous)
         {
             user = Users.Find(u => u.Name.ToLower() == lowerName);
-            if (user == null)
+            if (user is null)
                 return false;
             if (user.IsInRole("admin"))
                 return false;
@@ -126,7 +126,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
             var fileName = App.AppPath(securityFile);
             doc.Load(fileName);
             var node = doc.Root.FindNode("users/user[name='" + name + "']");
-            if (node == null)
+            if (node is null)
                 return false;
             node.Parent.Nodes.Remove(node);
             doc.Save(fileName);

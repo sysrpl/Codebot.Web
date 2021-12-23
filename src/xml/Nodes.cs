@@ -16,7 +16,7 @@ public abstract class Nodes<T> : Wrapper, IList, ICollection, IEnumerable, IEnum
 		get
 		{
 			XmlNode node = GetItem(name);
-			if (node == null)
+			if (node is null)
 				return null;
 			return CreateElement(node);
 		}
@@ -106,7 +106,7 @@ public abstract class Nodes<T> : Wrapper, IList, ICollection, IEnumerable, IEnum
 	public void Delete(string name)
 	{
 		Node node = this[name];
-		if (node != null)
+		if (node is not null)
 			InternalNode.RemoveChild(node.InternalNode);
 	}
 

@@ -98,7 +98,7 @@ public class Element : Node
         {
             var e = InternalNode as XmlElement;
             var n = e.FirstChild;
-            while (n != null)
+            while (n is not null)
             {
                 if (n is XmlElement)
                     return new Element(n as XmlElement);
@@ -114,7 +114,7 @@ public class Element : Node
         {
             var e = InternalNode as XmlElement;
             var n = e.LastChild;
-            while (n != null)
+            while (n is not null)
                 if (n is XmlElement)
                     return new Element(n as XmlElement);
                 else
@@ -129,7 +129,7 @@ public class Element : Node
         {
             var e = InternalNode as XmlElement;
             var n = e.NextSibling;
-            while (n != null)
+            while (n is not null)
             {
                 if (n is XmlElement)
                     return new Element(n as XmlElement);
@@ -162,7 +162,7 @@ public class Element : Node
     public Elements FindNodes(string xpath)
     {
         var nodes = InternalNode.SelectNodes(xpath);
-        if (nodes == null)
+        if (nodes is null)
             return null;
         return new ElementSelect(nodes, InternalNode);
     }

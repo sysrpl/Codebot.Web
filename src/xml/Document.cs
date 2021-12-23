@@ -58,11 +58,11 @@ public class Document : Markup, ICloneable
     public static bool operator ==(Document a, Document b)
     {
         object x = a, y = b;
-        if ((x == null) && (y == null))
+        if ((x is null) && (y is null))
             return true;
-        if (x == null)
+        if (x is null)
             return false;
-        if (y == null)
+        if (y is null)
             return false;
         return a.Text == b.Text;
     }
@@ -137,7 +137,7 @@ public class Document : Markup, ICloneable
     {
         Element node = Root;
         string[] names = name.Split('/');
-        if ((node == null) || (node.Name != names[0]))
+        if ((node is null) || (node.Name != names[0]))
         {
             InternalDocument.RemoveAll();
             node = CreateElement(name);
@@ -163,7 +163,7 @@ public class Document : Markup, ICloneable
     public Elements FindNodes(string xpath)
     {
         XmlNodeList nodes = InternalDocument.SelectNodes(xpath);
-        if (nodes == null)
+        if (nodes is null)
             return null;
         return new ElementSelect(nodes, InternalDocument);
     }
@@ -171,7 +171,7 @@ public class Document : Markup, ICloneable
     public Elements FindNodes(string xpath, params object[] args)
     {
         XmlNodeList nodes = InternalDocument.SelectNodes(String.Format(xpath, args));
-        if (nodes == null)
+        if (nodes is null)
             return null;
         return new ElementSelect(nodes, InternalDocument);
     }

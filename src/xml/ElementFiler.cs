@@ -11,7 +11,7 @@ internal class ElementFiler : Filer
     protected override string ReadValue(string name, string value, bool stored)
     {
         XmlNode node = InternalNode.SelectSingleNode(name);
-        if ((node == null) && stored)
+        if ((node is null) && stored)
         {
             node = Node.Force(InternalNode as XmlElement, name);
             node.InnerText = value;

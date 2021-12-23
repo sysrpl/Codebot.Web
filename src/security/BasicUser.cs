@@ -16,7 +16,7 @@ public class BasicUser : ClaimsPrincipal, IUser, IIdentity
         get => anonymous;
         set
         {
-            if (anonymous == null)
+            if (anonymous is null)
                 anonymous = value;
         }
     }
@@ -55,7 +55,7 @@ public class BasicUser : ClaimsPrincipal, IUser, IIdentity
         IUser user;
         lock (Anonymous)
             user = security.Users.FirstOrDefault(u => u.Name == name);
-        if (user == null)
+        if (user is null)
         {
             Security.DeleteCredentials(context);
             return false;
@@ -77,7 +77,7 @@ public class BasicUser : ClaimsPrincipal, IUser, IIdentity
         var name = Security.ReadUserName(context);
         lock (Anonymous)
             user = security.Users.FirstOrDefault(u => u.Name == name);
-        if (user == null)
+        if (user is null)
             return Anonymous;
         return Security.Match(context, user, salt) ? user : Anonymous;
     }

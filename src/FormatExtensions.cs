@@ -50,7 +50,7 @@ public static class FormatExtensions
 
     private static void FormatObjectBuffer(this string format, object source, StringBuilder buffer)
     {
-        if (source == null)
+        if (source is null)
             return;
         using var reader = new StringReader(format);
         StringBuilder expression = new StringBuilder();
@@ -148,9 +148,9 @@ public static class FormatExtensions
     /// <remarks>This method is used to template pages, includes, and other objects</remarks>
     public static StringBuilder FormatObject(this string format, object source, StringBuilder buffer = null)
     {
-        if (format == null)
+        if (format is null)
             throw new ArgumentNullException(nameof(format));
-        if (buffer == null)
+        if (buffer is null)
             buffer = new StringBuilder(format.Length * 2);
         if (source is IEnumerable<object>)
             foreach (var item in source as IEnumerable<object>)
