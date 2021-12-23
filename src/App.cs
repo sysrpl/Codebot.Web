@@ -60,49 +60,41 @@ public static class App
     /// <summary>
     /// Attach and processes a BasicHandler
     /// </summary>
-    public static void Attach(IHttpHandler handler)
+    public static void Attach(HttpContext context, IHttpHandler handler)
     {
-        var c = Context;
-        if (c.Items.ContainsKey(handlerKey))
-            c.Items[handlerKey] = handler;
+        if (context.Items.ContainsKey(handlerKey))
+            context.Items[handlerKey] = handler;
         else
-            c.Items.Add(handlerKey, handler);
-        handler.ProcessRequest(c);
-    }
-
-    /// <summary>
-    /// The current handler if any
-    /// </summary>
-    public static BasicHandler Handler
-    {
-        get
-        {
-            var c = Context;
-            return c.Items.ContainsKey(handlerKey) ? c.Items[handlerKey] as BasicHandler : null;
-        }
+            context.Items.Add(handlerKey, handler);
+        handler.ProcessRequest(context);
     }
 
     /// <summary>
     /// Attach an error
     /// </summary>
-    private static void SetError(object error)
+    private static void SetError(HttpContext context, object error)
     {
-        var c = Context;
-        if (c.Items.ContainsKey(errorKey))
-            c.Items[errorKey] = error;
+        if (context.Items.ContainsKey(errorKey))
+            context.Items[errorKey] = error;
         else
-            c.Items.Add(errorKey, error);
+            context.Items.Add(errorKey, error);
     }
 
     /// <summary>
     /// The last Error if any
     /// </summary>
-    public static object LastError
+    public static object GetLastError(HttpContext context) =>
+        context.Items.ContainsKey(errorKey) ? context.Items[errorKey] : null;
+
+    /// <summary>
+    /// The current handler if any
+    /// </summary>
+    public static BasicHandler CurrentHandler
     {
         get
         {
             var c = Context;
-            return c.Items.ContainsKey(errorKey) ? c.Items[errorKey] : null;
+            return c.Items.ContainsKey(handlerKey) ? c.Items[handlerKey] as BasicHandler : null;
         }
     }
 
@@ -208,7 +200,7 @@ public static class App
             if (!(handler is null))
             {
                 requestHandled = true;
-                Attach(handler);
+                Attach(context, handler);
             }
             else
             {
@@ -223,7 +215,7 @@ public static class App
                         if (!(t is null) && Activator.CreateInstance(t) is IHttpHandler h)
                         {
                             requestHandled = true;
-                            Attach(h);
+                            Attach(context, h);
                         }
                     }
                 }
@@ -231,7 +223,7 @@ public static class App
         }
         catch (Exception e)
         {
-            SetError(e);
+            SetError(context, e);
             requestHandled = true;
             var errorHandled = false;
             if (!(OnError is null))
@@ -271,5 +263,6 @@ public static class App
         OnStart?.Invoke(EventArgs.Empty);
         host.Build().Run();
         OnStop?.Invoke(EventArgs.Empty);
+        Security?.Stop();
     }
 }

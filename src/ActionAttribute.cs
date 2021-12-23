@@ -3,7 +3,7 @@
 using System;
 
 [AttributeUsage(AttributeTargets.Method)]
-public class ActionAttribute : Attribute
+public class ActionAttribute : AuthorizeAttribute
 {
     public ActionAttribute(string actionName)
     {
@@ -11,8 +11,5 @@ public class ActionAttribute : Attribute
         ActionName = actionName;
     }
 
-    public string ContentType { get; set; }
     public string ActionName { get; set; }
-    public string Allow { get; set; }
-    public string Deny { get; set; }
 }

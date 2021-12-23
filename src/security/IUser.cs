@@ -1,6 +1,7 @@
 ﻿namespace Codebot.Web;
 
 using System.Security.Principal;
+using Microsoft.AspNetCore.Http;
 
 public interface IUser : IPrincipal
 {
@@ -9,7 +10,7 @@ public interface IUser : IPrincipal
 	string Hash { get; }
 	bool IsAdmin { get; }
 	bool IsAnonymous { get; }
-	bool Login(IUserSecurity security, string name, string password, string salt);
-	void Logout(IUserSecurity security);
-	IUser Restore(IUserSecurity security, string salt);
+	bool Login(HttpContext context, IUserSecurity security, string name, string password, string salt = "");
+	void Logout(HttpContext context, IUserSecurity security);
+	IUser Restore(HttpContext context, IUserSecurity security, string salt = "");
 }

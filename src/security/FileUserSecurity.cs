@@ -103,7 +103,10 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
 
     public bool DeleteUser(string name)
     {
-        if (!App.Context.User.IsInRole("admin"))
+        var user = CurrentUser;
+        if (user == null)
+            return false;
+        if (!user.IsInRole("admin"))
             return false;
         if (string.IsNullOrWhiteSpace(name))
             return false;
@@ -113,7 +116,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         var lowerName = name.ToLower();
         lock (BasicUser.Anonymous)
         {
-            var user = Users.Find(u => u.Name.ToLower() == lowerName);
+            user = Users.Find(u => u.Name.ToLower() == lowerName);
             if (user == null)
                 return false;
             if (user.IsInRole("admin"))
@@ -182,7 +185,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
 
     public virtual void RestoreUser(HttpContext context)
     {
-        context.User = BasicUser.Anonymous.Restore(this, App.UserAgent) as ClaimsPrincipal;
+        context.User = BasicUser.Anonymous.Restore(context, this) as ClaimsPrincipal;
     }
 
     IUser IUserSecurity.User { get => App.Context.User as IUser; }

@@ -20,7 +20,8 @@ public static class Security
         roles = new List<string>
         {
             "anonymous",
-            "admin"
+            "admin",
+            "user"
         };
     }
 
@@ -72,9 +73,17 @@ public static class Security
         return string.IsNullOrEmpty(s) ? string.Empty : s;
     }
 
-    public static void WriteCredentials(HttpContext context, IUser user, string salt)
+    private static string DefaultSalt(HttpContext context, string salt)
     {
-        string s = Credentials(user, salt);
+        if (String.IsNullOrWhiteSpace(salt))
+            return context.Request.Headers["User-Agent"].ToString();
+        else
+            return salt;
+    }
+
+    public static void WriteCredentials(HttpContext context, IUser user, string salt = "")
+    {
+        string s = Credentials(context, user, salt);
         CookieOptions option = new CookieOptions { Expires = DateTime.Now.AddYears(1) };
         context.Response.Cookies.Append(cookieName, s, option);
     }
@@ -82,18 +91,19 @@ public static class Security
     public static void DeleteCredentials(HttpContext context) =>
         context.Response.Cookies.Delete(cookieName);
 
-    public static string Credentials(IUser user, string salt) =>
-        user.Name + ":" + ComputeHash(salt + user.Name + user.Hash);
+    public static string Credentials(HttpContext context, IUser user, string salt = "") =>
+        user.Name + ":" + ComputeHash(DefaultSalt(context, salt) + user.Name + user.Hash);
 
-    public static bool Match(IUser user, string salt, string credentials)
+    public static bool Match(HttpContext context, IUser user, string salt = "")
     {
         if (!user.Active)
             return false;
+        var credentials = Security.ReadCredentials(context);
         var items = credentials.Split(':');
         if (items.Length != 2)
             return false;
         if (items[0] != user.Name)
             return false;
-        return items[1] == ComputeHash(salt + user.Name + user.Hash);
+        return items[1] == ComputeHash(DefaultSalt(context, salt) + user.Name + user.Hash);
     }
 }

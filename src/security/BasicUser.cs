@@ -50,40 +50,37 @@ public class BasicUser : ClaimsPrincipal, IUser, IIdentity
         }
     }
 
-    public bool Login(IUserSecurity security, string name, string password, string salt)
+    public bool Login(HttpContext context, IUserSecurity security, string name, string password, string salt = "")
     {
         IUser user;
         lock (Anonymous)
             user = security.Users.FirstOrDefault(u => u.Name == name);
         if (user == null)
         {
-            Security.DeleteCredentials(App.Context);
+            Security.DeleteCredentials(context);
             return false;
         }
         if (!user.Active || user.Hash != Security.ComputeHash(password))
         {
-            Security.DeleteCredentials(App.Context);
+            Security.DeleteCredentials(context);
             return false;
         }
-        Security.WriteCredentials(App.Context, user, salt);
+        Security.WriteCredentials(context, user, salt);
         return true;
     }
 
-    public void Logout(IUserSecurity security) => Security.DeleteCredentials(App.Context);
+    public void Logout(HttpContext context, IUserSecurity security) => Security.DeleteCredentials(context);
 
-    public IUser Restore(IUserSecurity security, string salt)
+    public IUser Restore(HttpContext context, IUserSecurity security, string salt = "")
     {
         IUser user = null;
-        var name = Security.ReadUserName(App.Context);
-        var credentials = Security.ReadCredentials(App.Context);
+        var name = Security.ReadUserName(context);
         lock (Anonymous)
             user = security.Users.FirstOrDefault(u => u.Name == name);
         if (user == null)
             return Anonymous;
-        return Security.Match(user, salt, credentials) ? user : Anonymous;
+        return Security.Match(context, user, salt) ? user : Anonymous;
     }
-
-    public HttpContext Context { get; set; }
 
     public override bool IsInRole(string role) => roles.IndexOf(role.ToLower()) > -1;
 

@@ -439,7 +439,7 @@ public abstract class BasicHandler : IHttpHandler
     /// Finds an object based on a key and find function
     /// </summary>
     /// <returns>The object either from cache or the find function</returns>
-    /// <param name="key">The key used to chache the object</param>
+    /// <param name="key">The key used to cache the object</param>
     /// <param name="find">The function used to find the object</param>
     public static object FindObject(string key, FindObjectFunc find)
     {

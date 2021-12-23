@@ -3,7 +3,7 @@
 using System;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class PageTypeAttribute : Attribute
+public class PageTypeAttribute : AuthorizeAttribute
 {
     public PageTypeAttribute(string fileName)
     {
@@ -12,7 +12,6 @@ public class PageTypeAttribute : Attribute
         IsTemplate = false;
     }
 
-    public string ContentType { get; set; }
     public string FileName { get; set; }
     public bool IsTemplate { get; set; }
 }

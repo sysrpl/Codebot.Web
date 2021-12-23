@@ -5,8 +5,8 @@ using System.Linq;
 
 /// <summary>
 /// Page handler is a typically the base class your should derive from
-/// to handle requests. You may adorn you class with [DefaultPage] or
-/// its actions with [Action]
+/// to handle requests. You may adorn you this class with [DefaultPage]
+/// [LoginPage] or its methods with [Action]
 /// </summary>
 public class PageHandler : BasicHandler
 {
@@ -38,8 +38,14 @@ public class PageHandler : BasicHandler
         var pageType = GetType().GetCustomAttribute<T>(true);
         if (pageType != null)
         {
-            ContentType = pageType.ContentType;
-            Include(pageType.FileName, pageType.IsTemplate);
+            if (Deny(pageType) || (!Allow(pageType)))
+                OnDeny(String.Empty);
+            else
+            {
+                OnAllow(String.Empty);
+                ContentType = pageType.ContentType;
+                Include(pageType.FileName, pageType.IsTemplate);
+            }
             return true;
         }
         return false;
@@ -61,24 +67,29 @@ public class PageHandler : BasicHandler
     protected virtual void EmptyAction(string actionName) => InvokeDefaultPage();
 
     /// <summary>
-    /// Provide a chance for decedents to supersede ActionPage rights
+    /// Provide a chance for decedents to supersede action rights
     /// </summary>
     protected virtual bool AllowAction(string actionName) => true;
 
     /// <summary>
-    /// The action was denied and you can do something about it here
+    /// A page or action was denied
     /// </summary>
-    protected virtual void OnDeny(string actionName) { }
+    /// <param name="actionName">actionName will be null if a page was denied</param>
+    protected virtual void OnDeny(string actionName)
+    {
+        Context.Response.StatusCode = 401;
+    }
 
     /// <summary>
-    /// The action was allowed and you can do something about it here
+    /// A page or action was allowed
     /// </summary>
+    /// <param name="actionName">actionName will be null if a page was allowed</param>
     protected virtual void OnAllow(string actionName) { }
 
     /// <summary>
-    /// Check the ActionPage for deny rights
+    /// Check for deny of an action or page
     /// </summary>
-    private bool Deny(ActionAttribute a)
+    private bool Deny(AuthorizeAttribute a)
     {
         var deny = a.Deny;
         if (string.IsNullOrEmpty(deny))
@@ -94,9 +105,9 @@ public class PageHandler : BasicHandler
     }
 
     /// <summary>
-    /// Check the ActionPage for allow rights
+    /// Check for allow of an action or page
     /// </summary>
-    private bool Allow(ActionAttribute a)
+    private bool Allow(AuthorizeAttribute a)
     {
         var allow = a.Allow;
         if (string.IsNullOrEmpty(allow))
@@ -123,17 +134,15 @@ public class PageHandler : BasicHandler
                 a => a.ActionName.ToLower() == actionName);
             if (attribute != null)
             {
-                if (Deny(attribute))
+                if (Deny(attribute) || (!Allow(attribute)))
                     OnDeny(actionName);
-                else if (Allow(attribute))
+                else
                 {
                     OnAllow(actionName);
                     ContentType = attribute.ContentType;
                     var pageAction = (WebAction)Delegate.CreateDelegate(typeof(WebAction), this, action);
                     pageAction();
                 }
-                else
-                    OnDeny(actionName);
                 return;
             }
         }

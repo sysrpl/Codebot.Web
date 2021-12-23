@@ -58,7 +58,7 @@ Using the simple example above you would have the following directory and file s
       +- home.html
 ```
 
-In this arrangement ``Codebot.Web folder`` is a sibling of the ``Test`` folder. The ``Codebot.Web`` folder contains a copy of this git repository and the ``Test`` folder contains your website project.
+In this arrangement ``Codebot.Web`` folder is a sibling of the ``Test`` folder. The ``Codebot.Web`` folder contains a copy of this git repository and the ``Test`` folder contains your website project.
 
 The ``Test/wwwroot`` folder contains the content of your website including any static files and sub folders might want to serve. When a client web browser requests a resource the web server will search for them beginning in the ``wwwroot`` folder.
 
@@ -71,8 +71,8 @@ Using this pattern of folders containing a ``home.dchc`` file its possible to de
 A simple way to serve a web page from your handler class is to decorate it with ``DefaultPage`` attribute. This will cause the handler to look for a file resource starting in the ``wwwroot`` folder matching the filename adorned to your attribute. In the code example at the top of this document that file resource is ``home.html``.
 
 ```csharp
-    [DefaultPage("home.html")]
-    public class Hello : PageHandler
+[DefaultPage("home.html")]
+public class Hello : PageHandler
 ```
 
 It should be noted that the ``DefaultPage`` attribute is completely optional. If you wanted to generate the page yourself through code. You could override the ``EmptyPage`` method and write a response manually using the following:
@@ -97,8 +97,8 @@ This would result in the same response content being sent back to the client, bu
 Instead of using your ``DefaultPage`` to serve a static file, it might be useful to use it as a template file. A template file can fill out a response using properties of your handler class. To use a template file simply add ``IsTemplate = true`` to the ``DefaultPage`` attribute decoration. Next add a property name, or multiple property names, to your default page file and it will act as a template.
 
 ```csharp
-    [DefaultPage("home.html", IsTemplate = true)]
-    public class Hello : PageHandler
+[DefaultPage("home.html", IsTemplate = true)]
+public class Hello : PageHandler
 ```
 
 And in your ``home.html`` default page file:
@@ -252,3 +252,30 @@ Handling json data assuming the entire request body is a json object:
         Write(JsonSerializer.Serialize(results));
     }
 ```
+
+## Security
+
+Security in this framework can be handled through user authentication. You may implement your own security using the ``IUser`` and ``IUserSecrity`` interfaces. You are free to implement users and the security anyway you want, but this framework provides you with an basic version using xml storage of users in a private folder.
+
+Here is an example of how to use this basic implemenation:
+
+```csharp
+namespace Test.Web;
+
+using Codebot.Web;
+
+[LoginPage("/Templates/Login.html", IsTemplate = true)]
+[DefaultPage("/Templates/Home.html", IsTemplate = true)]
+public class HomePage : BasicUserPage
+{
+    public static void Main(string[] args)
+    {
+        App.UseSecurity(new BasicUserSecurity());
+        App.Run(args);
+    }
+}
+```
+
+This defines a home page type inheriting from ``BasicUserPage`` and instructing ``App`` to use ``BasicUserSecurity`` as the security system. If you want to add to the user type using this basic system, you should derive from ``BasicUser`` adding the information you need, for example email address and phone number. Next you would extend ``FileUserSecurity`` taking care to override the ``CreateUser``, ``ReadUser``, ``WriteUser``, and ``GenerateDefaultUsers`` methods.
+
+You are free to implement your own user and security types using other storage options such as a database. If you want to do this follow ``FileUserSecurity`` as a guide.

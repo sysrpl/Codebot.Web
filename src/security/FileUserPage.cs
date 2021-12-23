@@ -43,7 +43,7 @@ public class FileUserPage<TUser> : PageHandler where TUser : BasicUser
             Write("FAIL");
             return;
         }
-        var success = User.Login(security, name, password, App.UserAgent);
+        var success = User.Login(Context, security, name, password, App.UserAgent);
         var redirect = Read("redirect");
         if (redirect == "true")
             Redirect("/");
@@ -55,7 +55,7 @@ public class FileUserPage<TUser> : PageHandler where TUser : BasicUser
     public void LogoutAction()
     {
         var security = App.Security;
-        User.Logout(security);
+        User.Logout(Context, security);
         if (Read("redirect") == "true")
             Redirect("/");
         else
