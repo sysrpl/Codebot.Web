@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,8 +22,8 @@ public static class App
     private static IHttpContextAccessor accessor;
     private static readonly object handlerKey;
     private static readonly object errorKey;
-    private static readonly string approot;
-    private static readonly string webroot;
+    private static string approot;
+    private static string webroot;
 
     /// <summary>
     /// Static constructor
@@ -31,8 +32,6 @@ public static class App
     {
         handlerKey = new object();
         errorKey = new object();
-        approot = Directory.GetCurrentDirectory();
-        webroot = Path.Combine(approot, "wwwroot");
         HandlerType = "home.dchc";
     }
 
@@ -118,33 +117,47 @@ public static class App
     /// </summary>
     public static int StatusCode { get => Context.Response.StatusCode; }
 
+    private static string CombinePath(string a, string b)
+    {
+        if (string.IsNullOrEmpty(a))
+            a = string.Empty;
+        if (string.IsNullOrEmpty(b))
+            b = string.Empty;
+        if (a.Contains(".."))
+            return a;
+        if (b.Contains(".."))
+            return a;
+        while (b.StartsWith("/"))
+            b = b.Substring(1);
+        return string.IsNullOrEmpty(b) ? a : Path.Combine(a, b);
+    }
+
     /// <summary>
     /// Map a path to application file path
     /// </summary>
-    public static string AppPath(string path = "")
-    {
-        return string.IsNullOrEmpty(path) ? approot : Path.Combine(approot, path);
-    }
+    public static string AppPath(string path = "") => CombinePath(approot, path);
 
     /// <summary>
     /// Map a web request path to a physical file path
     /// </summary>
-    /// <remarks>If path is empty the return value is the requested path</remarks>
-    public static string MapPath(string path = "")
+    /// <remarks>If path is empty the return value is the web root</remarks>
+    public static string MapPath(string path = "") => MapPath(Context, path);
+
+    /// <summary>
+    /// Map a web request path to a physical file path given a context
+    /// </summary>
+    /// <remarks>If path is empty the return value is the web root</remarks>
+    public static string MapPath(HttpContext context, string path = "")
     {
-        // TODO ponder blocking ".." in path for security reasons
         if (string.IsNullOrEmpty(path))
-            path = RequestPath;
+            path = context.Request.Path.Value;
+        if (path is null)
+            path = String.Empty;
         if (path.StartsWith("/"))
-        {
-            path = path.Substring(1);
-            return string.IsNullOrEmpty(path) ? webroot : Path.Combine(webroot, path);
-        }
-        var root = RequestPath;
-        if (root.StartsWith("/"))
-            root = root.Substring(1);
-        root = string.IsNullOrEmpty(root) ? webroot : Path.Combine(webroot, root);
-        return Path.Combine(root, path);
+            return CombinePath(webroot, path);
+        var root = context.Request.Path.Value;
+        root = CombinePath(webroot, root);
+        return CombinePath(root, path);
     }
 
     /// <summary>
@@ -190,33 +203,30 @@ public static class App
         try
         {
             IHttpHandler handler = null;
-            if (!(OnProcessRequest is null))
+            if (OnProcessRequest is not null)
             {
                 var args = new ContextEventArgs(context);
                 OnProcessRequest(args);
                 if (args.Handled)
                     handler = args.Handler;
             }
-            if (!(handler is null))
+            if (handler is not null)
             {
                 requestHandled = true;
                 Attach(context, handler);
             }
             else
             {
-                var s = MapPath();
-                s = Path.Combine(s, HandlerType);
+                var s = MapPath(context);
+                s = CombinePath(s, HandlerType);
                 if (File.Exists(s))
                 {
-                    s = s.Contains("..") ? string.Empty : Read(s);
-                    if (s.Length > 0)
+                    s = Read(s);
+                    var t = Type.GetType(s);
+                    if (t is not null && Activator.CreateInstance(t) is IHttpHandler h)
                     {
-                        var t = Type.GetType(s);
-                        if (!(t is null) && Activator.CreateInstance(t) is IHttpHandler h)
-                        {
-                            requestHandled = true;
-                            Attach(context, h);
-                        }
+                        requestHandled = true;
+                        Attach(context, h);
                     }
                 }
             }
@@ -245,23 +255,25 @@ public static class App
     /// </summary>
     public static void Run(string[] args)
     {
-        var host = Host.CreateDefaultBuilder(args)
-        .ConfigureWebHostDefaults(builder =>
+        var builder = Host.CreateDefaultBuilder(args)
+        .ConfigureWebHostDefaults(def =>
         {
-            builder
+            def
             .ConfigureServices(services => services.AddHttpContextAccessor())
-            .Configure(app =>
+            .Configure((ctx, app) =>
             {
+                approot = ctx.HostingEnvironment.ContentRootPath;
+                webroot = ctx.HostingEnvironment.WebRootPath;
                 accessor = app.ApplicationServices.GetRequiredService<IHttpContextAccessor>();
                 if (args.Contains("--debug") || args.Contains("-d"))
                     app.UseDeveloperExceptionPage();
                 app.UseStaticFiles();
                 app.Use(ProcessRequest);
+                Security?.Start();
+                OnStart?.Invoke(EventArgs.Empty);
             });
         });
-        Security?.Start();
-        OnStart?.Invoke(EventArgs.Empty);
-        host.Build().Run();
+        builder.Build().Run();
         OnStop?.Invoke(EventArgs.Empty);
         Security?.Stop();
     }
