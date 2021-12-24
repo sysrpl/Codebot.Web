@@ -188,7 +188,6 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         context.User = BasicUser.Anonymous.Restore(context, this) as ClaimsPrincipal;
     }
 
-    IUser IUserSecurity.User { get => App.Context.User as IUser; }
     IEnumerable<IUser> IUserSecurity.Users { get => Users; }
 }
 

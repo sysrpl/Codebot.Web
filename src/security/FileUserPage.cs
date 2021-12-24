@@ -27,7 +27,7 @@ public class FileUserPage<TUser> : PageHandler where TUser : BasicUser
 
     protected void UserWriteFile(string user, string fileName, string content)
     {
-        fileName = App.AppPath($"/private/data/{user}/{fileName}");
+        fileName = App.AppPath($"private/data/{user}/{fileName}");
         Directory.CreateDirectory(Path.GetDirectoryName(fileName));
         App.Write(fileName, content);
     }

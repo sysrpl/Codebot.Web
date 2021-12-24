@@ -235,7 +235,7 @@ public static class App
             SetError(context, e);
             requestHandled = true;
             var errorHandled = false;
-            if (!(OnError is null))
+            if (OnError is not null)
             {
                 var args = new ContextEventArgs(context, e);
                 OnError.Invoke(args);
@@ -255,9 +255,9 @@ public static class App
     public static void Run(string[] args)
     {
         var builder = Host.CreateDefaultBuilder(args)
-        .ConfigureWebHostDefaults(def =>
+        .ConfigureWebHostDefaults(defaults =>
         {
-            def
+            defaults
             .ConfigureServices(services => services.AddHttpContextAccessor())
             .Configure((ctx, app) =>
             {
