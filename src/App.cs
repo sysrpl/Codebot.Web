@@ -37,18 +37,14 @@ public static class App
     /// <summary>
     /// Read from a file and keep a cached copy of its content
     /// </summary>
-    public static string Read(string fileName)
-    {
-        return FileCache.Read(fileName);
-    }
+    public static string Read(string fileName) =>
+        FileCache.Read(fileName);
 
     /// <summary>
     /// Write to a file
     /// </summary>
-    public static void Write(string fileName, string contents)
-    {
+    public static void Write(string fileName, string contents) =>
         FileCache.Write(fileName, contents);
-    }
 
     /// <summary>
     /// The current HttpContext
