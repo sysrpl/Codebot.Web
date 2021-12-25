@@ -312,24 +312,7 @@ public abstract class BasicHandler : IHttpHandler
     /// <summary>
     /// Map a web request path to a physical file path
     /// </summary>
-    public string MapPath(string path) => App.MapPath(path);
-
-    /// <summary>
-    /// Map a physical file path to a server url
-    /// </summary>
-    public string ReverseMapPath(string path)
-    {
-        string s = App.AppPath();
-        s = s.Replace("\\", "/");
-        if (s.EndsWith("/"))
-            s = s[0..^1];
-        if (path.IndexOf(s) < 0)
-            return "/";
-        path = path.Substring(path.Length);
-        if (path.StartsWith("/"))
-            return path;
-        return "/";
-    }
+    public string MapPath(string path) => App.MapPath(Context, path);
 
     /// <summary>
     /// The current ip address of the client
@@ -469,13 +452,13 @@ public abstract class BasicHandler : IHttpHandler
     /// Returns true if a file exists
     /// </summary>
     /// <param name="fileName">The filename to be mapped</param>
-    public bool FileExists(string fileName) => File.Exists(App.MapPath(fileName));
+    public bool FileExists(string fileName) => File.Exists(MapPath(fileName));
 
     /// <summary>
     /// Returns true if a folder exists
     /// </summary>
     /// <param name="folder">The folder to be mapped</param>
-    public bool FolderExists(string folder) => Directory.Exists(App.MapPath(folder));
+    public bool FolderExists(string folder) => Directory.Exists(MapPath(folder));
 
     /// <summary>
     /// Read and caches the contents of a file without includes or templates
@@ -486,7 +469,7 @@ public abstract class BasicHandler : IHttpHandler
     public string IncludeReadDirect(string fileName, out bool changed)
     {
         string data = string.Empty;
-        fileName = App.MapPath(fileName);
+        fileName = MapPath(fileName);
         lock (includeLog)
         {
             DateTime change = File.GetLastWriteTime(fileName);

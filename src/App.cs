@@ -213,7 +213,7 @@ public static class App
             else
             {
                 var s = MapPath(context);
-                s = CombinePath(s, HandlerType);
+                s = Path.Combine(s, HandlerType);
                 if (File.Exists(s))
                 {
                     s = Read(s);
