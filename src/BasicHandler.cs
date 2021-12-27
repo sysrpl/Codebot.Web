@@ -128,18 +128,12 @@ public abstract class BasicHandler : IHttpHandler
     /// <summary>
     /// Convert a string to type T
     /// </summary>
-    public static T Convert<T>(string value)
-    {
-        return Converter.Convert<string, T>(value);
-    }
+    public static T Convert<T>(string value) => Converter.Convert<string, T>(value);
 
     /// <summary>
     /// Try to convert a string to type T capturing the result
     /// </summary>
-    public static bool TryConvert<T>(string value, out T result)
-    {
-        return Converter.TryConvert<string, T>(value, out result);
-    }
+    public static bool TryConvert<T>(string value, out T result) => Converter.TryConvert<string, T>(value, out result);
 
     /// <summary>
     /// Returns true if query request contains key with a value
@@ -256,26 +250,17 @@ public abstract class BasicHandler : IHttpHandler
     /// <summary>
     /// Writes text to the response
     /// </summary>
-    public void Write(string s)
-    {
-        Context.Response.WriteAsync(s);
-    }
+    public void Write(string s) => Context.Response.WriteAsync(s);
 
     /// <summary>
     /// Writes an array of items to the response
     /// </summary>
-    public void Write(string s, params object[] args)
-    {
-        Context.Response.WriteAsync(string.Format(s, args));
-    }
+    public void Write(string s, params object[] args) => Write(string.Format(s, args));
 
     /// <summary>
     /// Writes object to the response
     /// </summary>
-    public void Write(object obj)
-    {
-        Context.Response.WriteAsync(obj.ToString());
-    }
+    public void Write(object obj) => Write(obj.ToString());
 
     /// <summary>
     /// Writes an array of items to the response using a converter
@@ -287,14 +272,16 @@ public abstract class BasicHandler : IHttpHandler
     }
 
     /// <summary>
-    /// Writes an array of bytes to the response and switch content type to octet stream.
+    /// Writes an array of bytes to the response and switch content type
     /// </summary>
     /// <param name="buffer">The buffer of bytes to transmit.</param>
-    public void Write(byte[] buffer)
+    /// <param name="contentType">Optionally use a content type</param>
+    public void Write(byte[] buffer, string contentType = "application/octet-stream")
     {
         if (buffer.Length > 0)
         {
-            Response.ContentType = "application/octet-stream";
+            if (!string.IsNullOrWhiteSpace(contentType))
+                Response.ContentType = contentType;
             Response.Body.WriteAsync(buffer, 0, buffer.Length);
         }
     }
