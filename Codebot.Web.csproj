@@ -1,14 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <CodeAnalysisRuleSet>custom.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="bin\Debug\net6.0\Codebot.Web.deps.json" />
     <None Remove="bin\Debug\net6.0\Codebot.Web.dll" />
@@ -29,13 +30,5 @@
     <None Include="obj\Debug\net6.0\Codebot.Web.AssemblyInfoInputs.cache" />
     <None Include="obj\Debug\net6.0\Codebot.Web.csproj.FileListAbsolute.txt" />
     <None Include="obj\Debug\net6.0\Codebot.Web.pdb" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="src\security\" />
-    <Folder Include="src\xml\" />
-    <Folder Include="src\common\" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="system.net.http" Version="4.3.4" />
   </ItemGroup>
 </Project>

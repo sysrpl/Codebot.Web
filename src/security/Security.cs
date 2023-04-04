@@ -84,7 +84,7 @@ public static class Security
     public static void WriteCredentials(HttpContext context, IUser user, string salt = "")
     {
         string s = Credentials(context, user, salt);
-        CookieOptions option = new CookieOptions { Expires = DateTime.Now.AddYears(1) };
+        var option = new CookieOptions { Expires = DateTime.Now.AddYears(1) };
         context.Response.Cookies.Append(cookieName, s, option);
     }
 

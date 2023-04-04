@@ -20,7 +20,7 @@ public class Element : Node
 
     public Attributes Attributes
     {
-        get => new Attributes(InternalNode.Attributes, InternalNode);
+        get => new (InternalNode.Attributes, InternalNode);
     }
 
     public Element Remove(Func<Element, bool> func)
@@ -30,17 +30,17 @@ public class Element : Node
         items.ForEach(element => { if (!func(element)) list.Add(element); });
         Elements node = Nodes;
         node.Clear();
-        list.ForEach((element) => node.Add(element));
+        list.ForEach(node.Add);
         return this;
     }
 
     public Element Sort(Comparison<Element> comparison)
     {
-        List<Element> items = new List<Element>(Nodes as IEnumerable<Element>);
+        var items = new List<Element>(Nodes);
         Elements node = Nodes;
         node.Clear();
         items.Sort(comparison);
-        items.ForEach(element => node.Add(element));
+        items.ForEach(node.Add);
         return this;
     }
 

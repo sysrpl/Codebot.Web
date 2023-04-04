@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 
-
 [AttributeUsage(AttributeTargets.Class,  AllowMultiple = true)]
 public sealed class TemplateAttribute : Attribute
 {
@@ -12,7 +11,7 @@ public sealed class TemplateAttribute : Attribute
 
     public TemplateAttribute(params string[] names)
     {
-        List<Template> items = new List<Template>();
+        var items = new List<Template>();
         foreach (var n in names)
             items.Add(new Template(n));
         Items = items.ToArray();

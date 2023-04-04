@@ -8,7 +8,7 @@ public static class WebObjectExtensions
 {
 	public static string ReadBody(this HttpRequest request)
 	{
-		using StreamReader reader = new StreamReader(request.Body);
+		using var reader = new StreamReader(request.Body);
 		return reader.ReadToEnd();
 	}
 
@@ -26,7 +26,7 @@ public static class WebObjectExtensions
 
 	public static void WriteCookie(this HttpContext context, string key, string value, DateTime? expires = null)
 	{
-		CookieOptions option = new CookieOptions();
+		var option = new CookieOptions();
 		if (expires.HasValue)
 			option.Expires = expires;
 		else

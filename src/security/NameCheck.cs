@@ -23,6 +23,12 @@ public static class NameCheck
 			return false;
 		if (!IsAlphanumeric(userName[length - 1]))
 			return false;
+		if (userName.Contains(' '))
+			return false;
+		if (userName.Contains('"'))
+			return false;
+		if (userName.Contains('\''))
+			return false;
 		if (!Regex.IsMatch(userName, "^[a-z0-9._-]*$"))
 			return false;
 		if (Regex.IsMatch(userName, "[0-9]{5,}"))

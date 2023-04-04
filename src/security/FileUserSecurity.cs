@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 
 public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, new()
 {
-    protected delegate IWriter GenerateUser();
+    public delegate IWriter GenerateUser();
 
     protected virtual void GenerateDefaultUsers(GenerateUser generate)
     {
@@ -64,19 +64,22 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         get => App.Context.User as TUser;
     }
 
-    private protected static string Hasher(string value) => Security.ComputeHash(value);
+    protected static string Hasher(string value) => Security.ComputeHash(value);
 
     private const string securityFile = "private/users.xml";
 
-    private static readonly List<TUser> users = new List<TUser>();
+    private static readonly List<TUser> users = new();
 
     public List<TUser> Users { get => users; }
 
     public bool AddUser(Dictionary<string, string> args)
     {
+        Start();
         var user = CreateUser(args);
         if (user is null)
+        {
             return false;
+        }
         var doc = new Document();
         var fileName = App.AppPath(securityFile);
         lock (BasicUser.Anonymous)
@@ -92,6 +95,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
 
     public bool AddUser(string name, string password, string roles = "user")
     {
+        Start();
         var args = new Dictionary<string, string>()
         {
             {"name", name},
@@ -101,40 +105,63 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         return AddUser(args);
     }
 
-    public bool DeleteUser(string name)
+    public bool ModifyUser(TUser user)
     {
-        var user = CurrentUser;
-        if (user is null)
+        Start();
+        if (user.IsAnonymous)
             return false;
-        if (!user.IsInRole("admin"))
-            return false;
-        if (string.IsNullOrWhiteSpace(name))
-            return false;
-        name = name.Trim();
-        if (!NameCheck.IsValidUserName(name))
-            return false;
-        var lowerName = name.ToLower();
         lock (BasicUser.Anonymous)
         {
-            user = Users.Find(u => u.Name.ToLower() == lowerName);
-            if (user is null)
-                return false;
-            if (user.IsInRole("admin"))
-                return false;
-            Users.Remove(user);
             var doc = new Document();
             var fileName = App.AppPath(securityFile);
             doc.Load(fileName);
-            var node = doc.Root.FindNode("users/user[name='" + name + "']");
+            var node = doc.Root.FindNode($"users/user[name='{user.Name}']");
             if (node is null)
                 return false;
-            node.Parent.Nodes.Remove(node);
-            doc.Save(fileName);
+            var filer = node.Filer;
+            WriteUser(filer, user);
+            doc.Save(fileName, true);
         }
         return true;
     }
 
-    private void CreateConfig(Document doc)
+    public bool FindUser(string name)
+    {
+        return FindUser(name, out _);
+    }
+
+    public bool FindUser(string name, out TUser user)
+    {
+        Start();
+        lock (BasicUser.Anonymous)
+        {
+            var lowerName = name.ToLower();
+            user = Users.Find(u => u.Name.ToLower() == lowerName);
+            return user is not null;
+        }
+    }
+
+    public bool DeleteUser(TUser user)
+    {
+        Start();
+        if (user.IsAnonymous)
+            return false;
+        lock (BasicUser.Anonymous)
+        {
+            Users.Remove(user);
+            var doc = new Document();
+            var fileName = App.AppPath(securityFile);
+            doc.Load(fileName);
+            var node = doc.Root.FindNode($"users/user[name='{user.Name}']");
+            if (node is null)
+                return false;
+            node.Parent.Nodes.Remove(node);
+            doc.Save(fileName, true);
+        }
+        return true;
+    }
+
+    private static void CreateConfig(Document doc)
     {
         var filer = doc.Force("security").Filer;
         var secret = filer.ReadString("secret");
@@ -156,7 +183,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
             if (node.Name != "user")
                 continue;
             var filer = node.Filer;
-            TUser user = new TUser();
+            var user = new TUser();
             ReadUser(filer, user);
             if (!user.Active)
                 continue;
@@ -164,19 +191,26 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         }
     }
 
+    protected bool Started { get; private set; }
+
     public virtual void Start()
     {
+        if (Started)
+            return;
+        Started = true;
         BasicUser.Anonymous = new TUser() { Active = false, Name = "anonymous" };
-        string fileName = App.AppPath(securityFile);
-        Document doc = new Document();
-        FileInfo fileInfo = new FileInfo(fileName);
+        var fileName = App.AppPath(securityFile);
+        var doc = new Document();
+        var fileInfo = new FileInfo(fileName);
         if (fileInfo.Exists)
             doc.Load(fileName);
         else
             Directory.CreateDirectory(fileInfo.Directory.FullName);
+        var state = doc.ToString();
         CreateConfig(doc);
         CreateUsers(doc);
-        doc.Save(fileName);
+        if (state != doc.ToString())
+            doc.Save(fileName, true);
     }
 
     public virtual void Stop()
@@ -185,6 +219,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
 
     public virtual void RestoreUser(HttpContext context)
     {
+        Start();
         context.User = BasicUser.Anonymous.Restore(context, this) as ClaimsPrincipal;
     }
 

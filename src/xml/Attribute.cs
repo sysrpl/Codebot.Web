@@ -16,5 +16,5 @@ public class Attribute : Node
 
 	public static implicit operator XmlAttribute(Attribute attribute) => attribute.InternalAttribute;
 
-	public static implicit operator Attribute(XmlAttribute attribute) => new Attribute(attribute);
+	public static implicit operator Attribute(XmlAttribute attribute) => new (attribute);
 }

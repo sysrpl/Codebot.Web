@@ -10,6 +10,14 @@ public class WebCustomException : Exception
     {
     }
 
+    public WebCustomException(string message) : base(message)
+    {
+    }
+
+    public WebCustomException(string message, Exception innerException) : base(message, innerException)
+    {
+    }
+
     public Exception Inner { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }

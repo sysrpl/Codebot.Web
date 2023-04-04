@@ -78,18 +78,14 @@ public static class App
     /// The last Error if any
     /// </summary>
     public static object GetLastError(HttpContext context) =>
-        context.Items.ContainsKey(errorKey) ? context.Items[errorKey] : null;
+        context.Items.TryGetValue(errorKey, out object value) ? value : null;
 
     /// <summary>
     /// The current handler if any
     /// </summary>
     public static BasicHandler CurrentHandler
     {
-        get
-        {
-            var c = Context;
-            return c.Items.ContainsKey(handlerKey) ? c.Items[handlerKey] as BasicHandler : null;
-        }
+        get => Context.Items.TryGetValue(handlerKey, out object value) ? value as BasicHandler : null;
     }
 
     /// <summary>
@@ -146,8 +142,7 @@ public static class App
     {
         if (string.IsNullOrEmpty(path))
             path = context.Request.Path.Value;
-        if (path is null)
-            path = String.Empty;
+        path ??= String.Empty;
         if (path.StartsWith("/"))
             return CombinePath(webroot, path);
         var root = context.Request.Path.Value;

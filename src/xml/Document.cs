@@ -46,14 +46,14 @@ public class Document : Markup, ICloneable
 
     public static Document Open(string fileName)
     {
-        Document document = new Document();
+        var document = new Document();
         document.Load(fileName);
         return document;
     }
 
     public static Element OpenElement(string fileName, string query) => Open(fileName).FindNode(query);
 
-    public static Elements OpenElements(string fileName, string query) =>  Open(fileName).FindNodes(query);
+    public static Elements OpenElements(string fileName, string query) => Open(fileName).FindNodes(query);
 
     public static bool operator ==(Document a, Document b)
     {
@@ -69,11 +69,11 @@ public class Document : Markup, ICloneable
 
     public static bool operator !=(Document a, Document b) => !(a == b);
 
-    public static explicit operator Document(string text) => new Document(text);
+    public static explicit operator Document(string text) => new(text);
 
     public static explicit operator string(Document document) => document.Text;
 
-    public static implicit operator Document(XmlDocument document) => new Document(document);
+    public static implicit operator Document(XmlDocument document) => new(document);
 
     public static implicit operator XmlDocument(Document document) => document.InternalDocument;
 
@@ -92,12 +92,12 @@ public class Document : Markup, ICloneable
     {
         if (beautiful)
         {
-            using MemoryStream stream = new MemoryStream();
-            using StreamWriter streamWriter = new StreamWriter(stream);
-            XmlWriterSettings settings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
+            using var stream = new MemoryStream();
+            using var streamWriter = new StreamWriter(stream);
+            var settings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
             using XmlWriter writer = XmlWriter.Create(streamWriter, settings);
             InternalDocument.Save(writer);
-            using StreamReader streamReader = new StreamReader(stream);
+            using var streamReader = new StreamReader(stream);
             stream.Position = 0;
             return streamReader.ReadToEnd();
         }
@@ -105,9 +105,9 @@ public class Document : Markup, ICloneable
             return Text;
     }
 
-    public Attribute CreateAttribute(string name) => new Attribute(InternalDocument.CreateAttribute(name));
+    public Attribute CreateAttribute(string name) => new (InternalDocument.CreateAttribute(name));
 
-    public Element CreateElement(string name) => new Element(InternalDocument.CreateElement(name));
+    public Element CreateElement(string name) => new (InternalDocument.CreateElement(name));
 
     public void Instruct(string target, string data)
     {
@@ -123,9 +123,9 @@ public class Document : Markup, ICloneable
     {
         if (beautiful)
         {
-            using FileStream stream = new FileStream(filename, FileMode.Create);
-            using StreamWriter streamWriter = new StreamWriter(stream);
-            XmlWriterSettings settings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
+            using var stream = new FileStream(filename, FileMode.Create);
+            using var streamWriter = new StreamWriter(stream);
+            var settings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
             using XmlWriter writer = XmlWriter.Create(streamWriter, settings);
             InternalDocument.Save(writer);
         }
@@ -151,18 +151,18 @@ public class Document : Markup, ICloneable
     public Element FindNode(string xpath)
     {
         XmlNode node = InternalDocument.SelectSingleNode(xpath);
-        return node == null ? null : new Element(node as XmlElement);
+        return node == null ? null : new (node as XmlElement);
     }
 
     public Element FindNode(string xpath, params object[] args)
     {
-        XmlNode node = InternalDocument.SelectSingleNode(String.Format(xpath, args));
-        return node == null ? null : new Element(node as XmlElement);
+        XmlNode node = InternalDocument.SelectSingleNode(string.Format(xpath, args));
+        return node == null ? null : new (node as XmlElement);
     }
 
     public Elements FindNodes(string xpath)
     {
-        XmlNodeList nodes = InternalDocument.SelectNodes(xpath);
+        var nodes = InternalDocument.SelectNodes(xpath);
         if (nodes is null)
             return null;
         return new ElementSelect(nodes, InternalDocument);
@@ -170,13 +170,13 @@ public class Document : Markup, ICloneable
 
     public Elements FindNodes(string xpath, params object[] args)
     {
-        XmlNodeList nodes = InternalDocument.SelectNodes(String.Format(xpath, args));
+        XmlNodeList nodes = InternalDocument.SelectNodes(string.Format(xpath, args));
         if (nodes is null)
             return null;
         return new ElementSelect(nodes, InternalDocument);
     }
 
-    public Document Clone() => new Document(InternalDocument.Clone() as XmlDocument);
+    public Document Clone() => new (InternalDocument.Clone() as XmlDocument);
 
     #region ICloneable Members
     object ICloneable.Clone() => InternalDocument.Clone();

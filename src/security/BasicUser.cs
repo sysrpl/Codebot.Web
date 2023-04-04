@@ -22,19 +22,20 @@ public class BasicUser : ClaimsPrincipal, IUser, IIdentity
     }
 
     private readonly List<string> roles;
+    private string name;
 
     public BasicUser()
     {
+        name = string.Empty;
         Active = true;
         Data = null;
-        Name = string.Empty;
         Hash = string.Empty;
         roles = new List<string>();
     }
 
     public bool Active { get; set; }
     public object Data { get; set; }
-    public string Name { get; set; }
+    public string Name { get => name; set { if (string.IsNullOrWhiteSpace(name)) name = value; } }
     public string Hash { get; set; }
 
     public string Roles
