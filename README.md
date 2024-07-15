@@ -291,7 +291,7 @@ static void AppStart(EventArgs args)
     {
         // Disable the default admin user account
         user.Active = false;
-        // Save chases to the default admin user account
+        // Save changes to the default admin user account
         security.ModifyUser(user);
         // Create your own users with any roles
         security.AddUser("newusername", "newpassword", "admin,user");
