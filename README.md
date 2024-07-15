@@ -297,6 +297,7 @@ static void AppStart(EventArgs args)
         security.AddUser("newusername", "newpassword", "admin,user");
     }
 }
+
 public static void Main(string[] args)
 {
     App.OnStart += AppStart;
