@@ -9,15 +9,22 @@ using System.Text.RegularExpressions;
 
 public static class NameCheck
 {
+	public delegate bool CustomCheck(string value);
+
+	public static CustomCheck CustomCheckUserName { get; set; }
+	public static CustomCheck CustomCheckPassword { get; set; }
+
 	public static bool IsValidUserName(string userName)
 	{
-		if (userName is null)
+		if (string.IsNullOrWhiteSpace(userName))
 			return false;
+		if (CustomCheckUserName != null)
+			return CustomCheckUserName(userName);
 		userName = userName.ToLower();
 		if (Security.Roles.Contains(userName))
 			return false;
 		var length = userName.Length;
-		if (length < 5 || length > 32)
+		if (length < 4 || length > 32)
 			return false;
 		if (!IsAlpha(userName[0]))
 			return false;
@@ -44,10 +51,12 @@ public static class NameCheck
 
 	public static bool IsValidPassword(string password)
 	{
-		if (password is null)
+		if (string.IsNullOrWhiteSpace(password))
 			return false;
+		if (CustomCheckPassword != null)
+			return CustomCheckPassword(password);
 		var length = password.Length;
-		if (length < 5 || length > 32)
+		if (length < 4 || length > 32)
 			return false;
 		var alphaCount = 0;
 		foreach (var c in password)

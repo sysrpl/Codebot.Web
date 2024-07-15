@@ -77,9 +77,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         Start();
         var user = CreateUser(args);
         if (user is null)
-        {
             return false;
-        }
         var doc = new Document();
         var fileName = App.AppPath(securityFile);
         lock (BasicUser.Anonymous)

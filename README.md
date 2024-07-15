@@ -279,3 +279,30 @@ public class HomePage : BasicUserPage
 This defines a home page type inheriting from ``BasicUserPage`` and instructing ``App`` to use ``BasicUserSecurity`` as the security system. If you want to add to the user type using this basic system, you should derive from ``BasicUser`` adding the information you need, for example email address and phone number. Next you would extend ``FileUserSecurity`` taking care to override the ``CreateUser``, ``ReadUser``, ``WriteUser``, and ``GenerateDefaultUsers`` methods.
 
 You are free to implement your own user and security types using other storage options such as a database. If you want to do this follow ``FileUserSecurity`` as a guide.
+
+In your own apps may want to disable the default user "admin" account and add you our users like so.
+
+```csharp
+static void AppStart(EventArgs args)
+{
+    var security = App.Security as BasicUserSecurity;
+    // Check if the default admin user account is active
+    if (security.FindUser("admin", out var user) && user.Active)
+    {
+        // Disable the default admin user account
+        user.Active = false;
+        // Save chases to the default admin user account
+        security.ModifyUser(user);
+        // Create your own users with any roles
+        security.AddUser("newusername", "newpassword", "admin,user");
+    }
+}
+public static void Main(string[] args)
+{
+    App.OnStart += AppStart;
+    App.UseSecurity(new BasicUserSecurity());
+    App.Run(args);
+}
+```
+
+You may refer to the ``NameCheck`` class for enforcement of username and password rules.
