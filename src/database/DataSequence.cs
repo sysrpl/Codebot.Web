@@ -3,53 +3,47 @@ using System.Data.Common;
 
 namespace Codebot.Data;
 
-public delegate void DataRead(DbDataReader reader);
-
-public static class DataConnect
+public class DataSequence : IDisposable
 {
     public const int DefaultTimeout = 30;
 
-    public static string SplitCommands { get; set; }
+    public string SplitCommands { get; set; }
 
-    public static Func<DbConnection> CreateConnection { get; set; }
+    private DbConnection connection;
 
-    public static string ConnectionString { get; set; }
-
-    public static string LoadResourceText(Assembly assembly, string name)
+    public DataSequence()
     {
-        string resource = assembly.GetManifestResourceNames().First(item =>
-            item.EndsWith(name, StringComparison.Ordinal));
-        using var s = assembly.GetManifestResourceStream(resource);
-        using var reader = new StreamReader(s);
-        return reader.ReadToEnd();
+        connection = DataConnect.CreateConnection();
+        connection.Open();
     }
 
-    public static string LoadResourceText(string name)
+    public void Dispose()
     {
-        return LoadResourceText(Assembly.GetCallingAssembly(), name);
+        if (connection != null)
+        {
+            connection.Close();
+            connection.Dispose();
+            connection = null;
+        }
     }
 
-    public static void ExecuteReader(DataRead read, string query, bool resource = false, DataParameters parameters = null, int timeout = DefaultTimeout)
+    public void ExecuteReader(DataRead read, string query, bool resource = false, DataParameters parameters = null, int timeout = DefaultTimeout)
     {
         if (resource)
-            query = LoadResourceText(Assembly.GetCallingAssembly(), query);
-        using var connection = CreateConnection();
-        connection.Open();
+            query = DataConnect.LoadResourceText(Assembly.GetCallingAssembly(), query);
         using var command = connection.CreateCommand();
         command.CommandText = query;
         if (timeout > 0)
             command.CommandTimeout = timeout;
         DataParameters.Build(command, parameters);
         using var reader = command.ExecuteReader();
-        while (reader.Read())
-            read(reader);
+        read(reader);
     }
 
-    public static int ExecuteNonQuery(string query, bool resource = false, DataParameters parameters = null, int timeout = DefaultTimeout)
+    public int ExecuteNonQuery(string query, bool resource = false, DataParameters parameters = null, int timeout = DefaultTimeout)
     {
         if (resource)
-            query = LoadResourceText(Assembly.GetCallingAssembly(), query);
-        using var connection = CreateConnection();
+            query = DataConnect.LoadResourceText(Assembly.GetCallingAssembly(), query);
         connection.Open();
         using var command = connection.CreateCommand();
         if (timeout > 0)
@@ -75,12 +69,12 @@ public static class DataConnect
         return result;
     }
 
-    public static IEnumerable<T> ExecuteComposer<T>(Func<DbDataReader, T> composer,
+    public IEnumerable<T> ExecuteComposer<T>(Func<DbDataReader, T> composer,
         string query, bool resource = false, DataParameters parameters = null, int timeout = DefaultTimeout)
     {
         IEnumerable<T> list = null;
         if (resource)
-            query = LoadResourceText(Assembly.GetCallingAssembly(), query);
+            query = DataConnect.LoadResourceText(Assembly.GetCallingAssembly(), query);
         ExecuteReader(r => list = r.Compose(composer), query, false, parameters, timeout);
         return list;
     }

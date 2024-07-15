@@ -234,6 +234,15 @@ public abstract class BasicHandler : IHttpHandler
 	}
 
 	/// <summary>
+	/// Reads a float from the request with a default value
+	/// </summary>
+	public float ReadFloat(string key, float defaultValue = default)
+	{
+		TryRead(key, out float result, defaultValue);
+		return result;
+	}
+
+	/// <summary>
 	/// Reads a string from the request with a default value
 	/// </summary>
 	public string ReadString(string key, string defaultValue = "")
@@ -593,12 +602,12 @@ public abstract class BasicHandler : IHttpHandler
 			fileName = MapPath(fileName);
 		Context.Response.Clear();
 		Context.Response.ContentType = contentType;
-		Context.Response.Headers.Add("Content-Length", new FileInfo(fileName).Length.ToString());
+		Context.Response.Headers.Append("Content-Length", new FileInfo(fileName).Length.ToString());
 		var disposition = "";
 		if (attachment)
 			disposition = "attachment; ";
 		var name = Path.GetFileName(fileName);
-		Context.Response.Headers.Add("Content-Disposition", $"{disposition}fileName=\"{name}\"");
+		Context.Response.Headers.Append("Content-Disposition", $"{disposition}fileName=\"{name}\"");
 		long responseLength = 0;
 		using (FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
 		{

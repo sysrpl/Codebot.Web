@@ -29,6 +29,7 @@ public static class App
     /// </summary>
     static App()
     {
+        DisableCORS = true;
         handlerKey = new object();
         errorKey = new object();
         HandlerType = "home.dchc";
@@ -122,6 +123,8 @@ public static class App
             b = b.Substring(1);
         return string.IsNullOrEmpty(b) ? a : Path.Combine(a, b);
     }
+
+    public static bool DisableCORS { get; set; }
 
     /// <summary>
     /// Map a path to application file path
@@ -249,7 +252,21 @@ public static class App
         .ConfigureWebHostDefaults(defaults =>
         {
             defaults
-            .ConfigureServices(services => services.AddHttpContextAccessor())
+            .ConfigureServices(services =>
+            {
+                services.AddHttpContextAccessor();
+                if (DisableCORS)
+                    services.AddCors(options =>
+                    {
+                        options.AddPolicy("AllowAll", builder =>
+                        {
+                            builder
+                                .AllowAnyOrigin()
+                                .AllowAnyMethod()
+                                .AllowAnyHeader();
+                        });
+                    });
+            })
             .Configure((ctx, app) =>
             {
                 approot = ctx.HostingEnvironment.ContentRootPath;
@@ -257,6 +274,8 @@ public static class App
                 accessor = app.ApplicationServices.GetRequiredService<IHttpContextAccessor>();
                 if (args.Contains("--debug") || args.Contains("-d"))
                     app.UseDeveloperExceptionPage();
+                if (DisableCORS)
+                    app.UseCors("AllowAll");
                 app.UseStaticFiles();
                 app.Use(ProcessRequest);
                 Security?.Start();
