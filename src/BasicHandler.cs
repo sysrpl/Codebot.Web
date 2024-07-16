@@ -468,13 +468,19 @@ public abstract class BasicHandler : IHttpHandler
 	}
 
 	/// <summary>
-	/// Returns true if a file exists
+	/// Returns true if a file mapped under the wwwroot path exists
 	/// </summary>
 	/// <param name="fileName">The filename to be mapped</param>
 	public bool FileExists(string fileName) => File.Exists(MapPath(fileName));
 
 	/// <summary>
-	/// Returns true if a folder exists
+	/// Returns the text contents of a file mapped under the wwwroot path
+	/// </summary>
+	/// <param name="fileName">The filename to be mapped</param>
+	public string FileReadText(string fileName) => File.ReadAllText(MapPath(fileName));
+
+	/// <summary>
+	/// Returns true if a folder mapped under the wwwroot path exists
 	/// </summary>
 	/// <param name="folder">The folder to be mapped</param>
 	public bool FolderExists(string folder) => Directory.Exists(MapPath(folder));

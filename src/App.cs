@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -92,12 +93,21 @@ public static class App
     /// <summary>
     /// The current ip address of the client
     /// </summary>
-    public static string IpAddress { get => Context.Connection.RemoteIpAddress.ToString(); }
+    public static string IpAddress { get => Context.Connection?.RemoteIpAddress?.ToString() ?? "UnknownIP"; }
 
     /// <summary>
     /// The current user agent of the client
     /// </summary>
-    public static string UserAgent { get => Context.Request.Headers["User-Agent"].ToString(); }
+    public static string UserAgent
+    {
+        get
+        {
+            var agent = "UnknownUserAgent";
+            if (Context.Request.Headers.TryGetValue("User-Agent", out var values))
+                agent = values.FirstOrDefault() ?? agent;
+            return agent;
+        }
+    }
 
     /// <summary>
     /// The current requested path
@@ -108,6 +118,11 @@ public static class App
     /// The current response status code
     /// </summary>
     public static int StatusCode { get => Context.Response.StatusCode; }
+
+    /// <summary>
+    /// IsLocal returns true if the client is from local area network
+    /// </summary>
+    public static bool IsLocal { get => IpAddress.StartsWith("192.168.0.") || IpAddress.StartsWith("192.168.1."); }
 
     private static string CombinePath(string a, string b)
     {
@@ -214,6 +229,12 @@ public static class App
                 s = Path.Combine(s, HandlerType);
                 if (File.Exists(s))
                 {
+                    var path = context.Request.Path.Value;
+                    if (!path.EndsWith('/'))
+                    {
+                        context.Response.Redirect(path + "/");
+                        return;
+                    }
                     s = Read(s);
                     var t = Type.GetType(s);
                     if (t is not null && Activator.CreateInstance(t) is IHttpHandler h)
@@ -266,6 +287,12 @@ public static class App
                                 .AllowAnyHeader();
                         });
                     });
+                services.Configure<ForwardedHeadersOptions>(options =>
+                {
+                    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                    options.KnownNetworks.Clear();
+                    options.KnownProxies.Clear();
+                });
             })
             .Configure((ctx, app) =>
             {
@@ -276,6 +303,7 @@ public static class App
                     app.UseDeveloperExceptionPage();
                 if (DisableCORS)
                     app.UseCors("AllowAll");
+                app.UseForwardedHeaders();
                 app.UseStaticFiles();
                 app.Use(ProcessRequest);
                 Security?.Start();
