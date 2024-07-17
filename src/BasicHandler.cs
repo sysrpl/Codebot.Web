@@ -84,7 +84,7 @@ public abstract class BasicHandler : IHttpHandler
 		get
 		{
 			var address = Context.Connection.RemoteIpAddress.ToString();
-			return address.Equals("127.0.0.1") || address.StartsWith("192.168.0.") || address.StartsWith("192.168.1.");
+			return address.StartsWith("192.168.0.") || address.StartsWith("192.168.1.");
 		}
 	}
 
