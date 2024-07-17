@@ -275,8 +275,13 @@ public abstract class BasicHandler : IHttpHandler
 	/// </summary>
 	public string ReadBody()
 	{
-		using var reader = new StreamReader(Request.Body, Encoding.UTF8);
-		return reader.ReadToEnd();
+        Request.EnableBuffering();
+		using var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true);
+		var task = reader.ReadToEndAsync();
+		task.Wait();
+		var body = task.Result;
+        Request.Body.Position = 0;
+		return body;
 	}
 
 	/// <summary>
@@ -460,9 +465,21 @@ public abstract class BasicHandler : IHttpHandler
 	/// </summary>
 	/// <param name="s">The string to escape</param>
 	/// <returns>Returns a string with html characters escaped</returns>
-	public string HtmlEscape(string s)
+	static public string HtmlEscape(string s)
 	{
 		s = WebUtility.HtmlEncode(s);
+		s = s.Replace("&#39;", "'");
+		return s;
+	}
+
+	/// <summary>
+	/// Unescapes html characters
+	/// </summary>
+	/// <param name="s">The string to unescape</param>
+	/// <returns>Returns a string with html characters</returns>
+	static public string HtmlUnescape(string s)
+	{
+		s = WebUtility.HtmlDecode(s);
 		s = s.Replace("&#39;", "'");
 		return s;
 	}
@@ -474,10 +491,24 @@ public abstract class BasicHandler : IHttpHandler
 	public bool FileExists(string fileName) => File.Exists(MapPath(fileName));
 
 	/// <summary>
+	/// Delete a file mapped under the wwwroot path
+	/// </summary>
+	/// <param name="fileName">The filename to be deleted</param>
+	public void FileDelete(string fileName) => File.Delete(MapPath(fileName));
+
+
+	/// <summary>
 	/// Returns the text contents of a file mapped under the wwwroot path
 	/// </summary>
 	/// <param name="fileName">The filename to be mapped</param>
 	public string FileReadText(string fileName) => File.ReadAllText(MapPath(fileName));
+
+
+	/// <summary>
+	/// Write text content to a file mapped under the wwwroot path
+	/// </summary>
+	/// <param name="fileName">The filename to be mapped</param>
+	public void FileWriteText(string fileName, string contents) => File.WriteAllText(MapPath(fileName), contents);
 
 	/// <summary>
 	/// Returns true if a folder mapped under the wwwroot path exists
