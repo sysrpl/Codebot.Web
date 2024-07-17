@@ -31,9 +31,9 @@ public abstract class BasicHandler : IHttpHandler
 	/// </summary>
 	static BasicHandler()
 	{
-		objects = new Dictionary<string, object>();
-		includeLog = new Dictionary<string, DateTime>();
-		includeData = new Dictionary<string, string>();
+		objects = [];
+		includeLog = [];
+		includeData = [];
 	}
 
 	/// <summary>
@@ -83,7 +83,7 @@ public abstract class BasicHandler : IHttpHandler
 	{
 		get
 		{
-			var address = Context.Connection.RemoteIpAddress.ToString();
+			var address = IpAddress;
 			return address.StartsWith("192.168.0.") || address.StartsWith("192.168.1.");
 		}
 	}
@@ -108,7 +108,7 @@ public abstract class BasicHandler : IHttpHandler
 	{
 		get
 		{
-			string agent = Request.Headers["User-Agent"].ToString().ToLower();
+			var agent = UserAgent.ToLower();
 			foreach (var platform in platforms)
 				if (agent.Contains(platform))
 					return platform;
@@ -341,12 +341,18 @@ public abstract class BasicHandler : IHttpHandler
 	/// <summary>
 	/// The current ip address of the client
 	/// </summary>
-	public string IpAddress { get => Context.Connection.RemoteIpAddress.ToString(); }
+	public string IpAddress
+	{
+		get => Context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+	}
 
 	/// <summary>
 	/// The current user agent of the client
 	/// </summary>
-	public string UserAgent { get => Context.Request.Headers["User-Agent"].ToString(); }
+	public string UserAgent
+	{
+		get => 	Context.Request.Headers.UserAgent.FirstOrDefault()?.ToString() ?? "Unknown";
+	}
 
 	/// <summary>
 	/// Returns the content type for a file
