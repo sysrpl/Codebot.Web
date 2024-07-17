@@ -22,19 +22,9 @@ public abstract class BasicHandler : IHttpHandler
 	public delegate object QuerySectionsFunc(BasicHandler handler);
 	public delegate object FindObjectFunc(string key);
 
-	private static readonly Dictionary<string, object> objects;
-	private static readonly Dictionary<string, DateTime> includeLog;
-	private static readonly Dictionary<string, string> includeData;
-
-	/// <summary>
-	/// Initialize the BasicHandler class type
-	/// </summary>
-	static BasicHandler()
-	{
-		objects = [];
-		includeLog = [];
-		includeData = [];
-	}
+	private static readonly Dictionary<string, object> objects = [];
+	private static readonly Dictionary<string, DateTime> includeLog = [];
+	private static readonly Dictionary<string, string> includeData = [];
 
 	/// <summary>
 	/// The HttpContext associated with the handler
@@ -98,8 +88,8 @@ public abstract class BasicHandler : IHttpHandler
 	/// </summary>
 	public virtual bool IsAuthenticated => IsLocal;
 
-	private static readonly string[] platforms = { "windows phone", "windows",
-		"macintosh", "linux", "iphone", "android" };
+	private static readonly string[] platforms = ["windows phone", "windows",
+		"macintosh", "linux", "iphone", "android", "ipad"];
 
 	/// <summary>
 	/// Returns the platform name of a few known operating systems
@@ -331,7 +321,7 @@ public abstract class BasicHandler : IHttpHandler
 	/// <summary>
 	/// Map a path to application file path
 	/// </summary>
-	public string AppPath(string path) => App.AppPath(path);
+	public static string AppPath(string path) => App.AppPath(path);
 
 	/// <summary>
 	/// Map a web request path to a physical file path
