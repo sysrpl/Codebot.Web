@@ -12,8 +12,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Net.Http.Headers;
 
 /// <summary>
 /// BasicHandler performs everything you need to handle a response. You
@@ -348,100 +346,6 @@ public abstract class BasicHandler : IHttpHandler
 	}
 
 	/// <summary>
-	/// Returns the content type for a file
-	/// </summary>
-	public static string MapContentType(string fileName)
-	{
-		string ext = fileName.Split('.').Last().ToLower();
-		switch (ext)
-		{
-			case "7z":
-				return "application/x-7z-compressed";
-			case "aac":
-				return "audio/aac";
-			case "avi":
-				return "video/avi";
-			case "bmp":
-				return "image/bmp";
-			case "css":
-				return "text/css";
-			case "csv":
-				return "text/csv";
-			case "doc":
-				return "application/msword";
-			case "docx":
-				return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-			case "gif":
-				return "image/gif";
-			case "htm":
-			case "html":
-				return "text/html";
-			case "jpeg":
-			case "jpg":
-				return "image/jpeg";
-			case "js":
-				return "application/javascript";
-			case "json":
-				return "application/json";
-			case "mov":
-				return "video/quicktime";
-			case "m4a":
-				return "audio/mp4a";
-			case "mp3":
-				return "audio/mpeg";
-			case "m4v":
-			case "mp4":
-				return "video/mp4";
-			case "mpeg":
-			case "mpg":
-				return "video/mpeg";
-			case "ogg":
-				return "audio/ogg";
-			case "ogv":
-				return "video/ogv";
-			case "pdf":
-				return "application/pdf";
-			case "png":
-				return "image/png";
-			case "ppt":
-				return "application/vnd.ms-powerpoint";
-			case "pptx":
-				return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-			case "qt":
-				return "video/quicktime";
-			case "svg":
-				return "image/svg+xml";
-			case "swf":
-				return "application/x-shockwave-flash";
-			case "tif":
-			case "tiff":
-				return "image/tiff";
-			case "ini":
-			case "cfg":
-			case "cs":
-			case "pas":
-			case "txt":
-				return "text/plain";
-			case "wav":
-				return "audio/x-wav";
-			case "wma":
-				return "audio/x-ms-wma";
-			case "wmv":
-				return "audio/x-ms-wmv";
-			case "xls":
-				return "application/vnd.ms-excel";
-			case "xlsx":
-				return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-			case "xml":
-				return "text/xml";
-			case "zip":
-				return "application/zip";
-			default:
-				return "application/octet-stream";
-		}
-	}
-
-	/// <summary>
 	/// Finds an object based on a key and find function
 	/// </summary>
 	/// <returns>The object either from cache or the find function</returns>
@@ -728,7 +632,7 @@ public abstract class BasicHandler : IHttpHandler
 		}
         Response.Headers["Accept-Ranges"] = "bytes";
         Response.Headers["Content-Disposition"] = (attachment ? "attachment; " : "") + "filename=" + Path.GetFileName(fileName);
-		Response.Headers["Content-Type"] = MapContentType(fileName);
+		Response.Headers["Content-Type"] = Tools.MapContentType(fileName);
 		Response.Headers["Content-Length"] = responseLength.ToString();
 		Response.Headers["Cache-Control"] = "public, max-age=600";
 		Response.Headers["Expires"] = DateTime.UtcNow.AddMinutes(10).ToString("R");
@@ -744,7 +648,7 @@ public abstract class BasicHandler : IHttpHandler
 	public long SendAttachment(string fileName, string contentType = null)
 	{
 		if (string.IsNullOrWhiteSpace(contentType))
-			contentType = MapContentType(fileName);
+			contentType = Tools.MapContentType(fileName);
 		return SendFileData(fileName, contentType, true);
 	}
 
@@ -754,7 +658,7 @@ public abstract class BasicHandler : IHttpHandler
 	public long SendFile(string fileName, string contentType = null)
 	{
 		if (string.IsNullOrWhiteSpace(contentType))
-			contentType = MapContentType(fileName);
+			contentType = Tools.MapContentType(fileName);
 		return SendFileData(fileName, contentType, false);
 	}
 
