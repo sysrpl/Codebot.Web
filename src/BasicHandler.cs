@@ -9,8 +9,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Net.Http.Headers;
 
 /// <summary>
 /// BasicHandler performs everything you need to handle a response. You
@@ -265,12 +268,12 @@ public abstract class BasicHandler : IHttpHandler
 	/// </summary>
 	public string ReadBody()
 	{
-        Request.EnableBuffering();
+		Request.EnableBuffering();
 		using var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true);
 		var task = reader.ReadToEndAsync();
 		task.Wait();
 		var body = task.Result;
-        Request.Body.Position = 0;
+		Request.Body.Position = 0;
 		return body;
 	}
 
@@ -316,7 +319,7 @@ public abstract class BasicHandler : IHttpHandler
 	/// <summary>
 	/// The current requested path
 	/// </summary>
-	public string RequestPath { get => Context.Request.Path.Value; }
+	public string RequestPath { get => Context.Request.Path.Value ?? ""; }
 
 	/// <summary>
 	/// Map a path to application file path
@@ -341,13 +344,13 @@ public abstract class BasicHandler : IHttpHandler
 	/// </summary>
 	public string UserAgent
 	{
-		get => 	Context.Request.Headers.UserAgent.FirstOrDefault()?.ToString() ?? "Unknown";
+		get => Context.Request.Headers.UserAgent.FirstOrDefault()?.ToString() ?? "Unknown";
 	}
 
 	/// <summary>
 	/// Returns the content type for a file
 	/// </summary>
-	private static string MapContentType(string fileName)
+	public static string MapContentType(string fileName)
 	{
 		string ext = fileName.Split('.').Last().ToLower();
 		switch (ext)
@@ -626,6 +629,7 @@ public abstract class BasicHandler : IHttpHandler
 			url = Request.Headers["Referer"].ToString();
 		Context.Response.Redirect(url, false);
 	}
+
 	/// <summary>
 	/// Clears the response and transmits a file using a content type and attachment
 	/// </summary>
@@ -633,35 +637,105 @@ public abstract class BasicHandler : IHttpHandler
 	{
 		if (!File.Exists(fileName))
 			fileName = MapPath(fileName);
+		if (!File.Exists(fileName))
+		{
+			Response.StatusCode = (int)HttpStatusCode.NotFound;
+			return 0;
+		}
+		var info = new FileInfo(fileName);
+		var length = info.Length;
 		Context.Response.Clear();
 		Context.Response.ContentType = contentType;
-		Context.Response.Headers.Append("Content-Length", new FileInfo(fileName).Length.ToString());
+		Context.Response.Headers.Append("Content-Length", length.ToString());
 		var disposition = "";
 		if (attachment)
 			disposition = "attachment; ";
 		var name = Path.GetFileName(fileName);
 		Context.Response.Headers.Append("Content-Disposition", $"{disposition}fileName=\"{name}\"");
-		long responseLength = 0;
-		using (FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+		using var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read,
+			FileShare.Read, 4096, FileOptions.Asynchronous);
+		stream.CopyToAsync(Context.Response.Body).Wait();
+		return length;
+	}
+
+	/// <summary>
+	/// Transmits a file using seekable range
+	/// </summary>
+	/// <remarks>See http://stackoverflow.com/questions/5429947/
+	/// supporting-resumable-http-downloads-through-an-ashx-handler</remarks>
+	public long TransmitFile(string fileName, bool attachment = false)
+	{
+		#pragma warning disable ASP0015 // Suggest using IHeaderDictionary properties
+
+		string ReadHeader(string key)
 		{
-			const int bufferSize = 32 * 1024;
-			byte[] buffer = new byte[bufferSize];
-			long bytesRead = 0;
+			string result = null;
+			if (Request.Headers.TryGetValue(key, out var value))
+				result = value.FirstOrDefault();
+			return string.IsNullOrWhiteSpace(result) ? null : result;
+		}
+
+		void Transmit(string filePath, long fileLength, long offset, long length)
+		{
+			var remainingBytes = fileLength - offset;
+			var actualLength = length > 0 ? Math.Min(length, remainingBytes) : remainingBytes;
+			using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read,
+				FileShare.Read, 4096, FileOptions.Asynchronous);
+			stream.Seek(offset, SeekOrigin.Begin);
+			var buffer = new byte[actualLength];
+			int sent = 0;
 			do
 			{
-				bytesRead = stream.Read(buffer, 0, buffer.Length);
-				responseLength += bytesRead;
-				if (bytesRead == bufferSize)
-					Context.Response.Body.Write(buffer);
-				else if (bytesRead > 0)
-				{
-					byte[] small = new byte[bytesRead];
-					Array.Copy(buffer, small, bytesRead);
-					Context.Response.Body.Write(small);
-				}
-			} while (bytesRead == bufferSize);
+				sent = stream.ReadAsync(buffer, 0, (int)actualLength).Result;
+				Response.Body.WriteAsync(buffer).AsTask().Wait();
+				actualLength -= sent;
+			}
+			while (actualLength > 0);
 		}
+
+		if (!File.Exists(fileName))
+			fileName = MapPath(fileName);
+		if (!File.Exists(fileName))
+		{
+			Response.StatusCode = (int)HttpStatusCode.NotFound;
+			return 0;
+		}
+		var fileInfo = new FileInfo(fileName);
+		var responseLength = fileInfo.Exists ? fileInfo.Length : 0;
+		var startIndex = 0;
+		var etag = Read("v");
+		var ifMatch = ReadHeader("If-Match");
+		var ifMatchNone = ReadHeader("If-None-Matc");
+		var range = ReadHeader("Range");
+		var ifRange = ReadHeader("If-Range");
+		if (ifMatch is not null && ifMatch != "*" && ifMatch != etag)
+		{
+			Response.StatusCode = (int)HttpStatusCode.PreconditionFailed;
+			return 0;
+		}
+		if (ifMatchNone is not null && ifMatchNone == etag)
+		{
+			Response.StatusCode = (int)HttpStatusCode.NotModified;
+			return 0;
+		}
+		if (range is not null && ifRange is not null || ifRange == etag)
+		{
+			var match = Regex.Match(Request.Headers["Range"], @"bytes=(\d*)-(\d*)");
+			startIndex = Convert<int>(match.Groups[1].Value);
+			responseLength = (Convert<int?>(match.Groups[2].Value) + 1 ?? fileInfo.Length) - startIndex;
+			Response.StatusCode = (int)HttpStatusCode.PartialContent;
+			Response.Headers["Content-Range"] = "bytes " + startIndex + "-" + (startIndex + responseLength - 1) + "/" + fileInfo.Length;
+		}
+        Response.Headers["Accept-Ranges"] = "bytes";
+        Response.Headers["Content-Disposition"] = (attachment ? "attachment; " : "") + "filename=" + Path.GetFileName(fileName);
+		Response.Headers["Content-Type"] = MapContentType(fileName);
+		Response.Headers["Content-Length"] = responseLength.ToString();
+		Response.Headers["Cache-Control"] = "public, max-age=600";
+		Response.Headers["Expires"] = DateTime.UtcNow.AddMinutes(10).ToString("R");
+		Response.Headers["ETag"] = etag;
+		Transmit(fileName, fileInfo.Length, startIndex, responseLength);
 		return responseLength;
+		#pragma warning restore ASP0015 // Suggest using IHeaderDictionary properties
 	}
 
 	/// <summary>

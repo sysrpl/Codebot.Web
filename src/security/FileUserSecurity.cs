@@ -91,6 +91,13 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         return true;
     }
 
+    /// <summary>
+    /// Add a user to the file system
+    /// </summary>
+    /// <param name="name">The user name</param>
+    /// <param name="password">The password for the user</param>
+    /// <param name="roles">A comma separated list of roles</param>
+    /// <returns>True if the user can be added</returns>
     public bool AddUser(string name, string password, string roles = "user")
     {
         Start();
@@ -103,6 +110,11 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         return AddUser(args);
     }
 
+    /// <summary>
+    /// Save all user data to the file system
+    /// </summary>
+    /// <param name="user">The user to save</param>
+    /// <returns>True if the user was saved</returns>
     public bool ModifyUser(TUser user)
     {
         Start();
@@ -123,22 +135,39 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         return true;
     }
 
-    public bool FindUser(string name)
-    {
-        return FindUser(name, out _);
-    }
+    /// <summary>
+    /// Check if active user exists by name
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns>True if an active user was found</returns>
+    public bool FindUser(string name) => FindUser(name, out _);
 
-    public bool FindUser(string name, out TUser user)
+    /// <summary>
+    /// Find a user by name
+    /// </summary>
+    /// <param name="name">The user name to check</param>
+    /// <param name="user">Output of the user found if any</param>
+    /// <param name="active">When active is true only users with the active flag can be found</param>
+    /// <returns>True if the user was found</returns>
+    public bool FindUser(string name, out TUser user, bool active = true)
     {
         Start();
         lock (BasicUser.Anonymous)
         {
             var lowerName = name.ToLower();
             user = Users.Find(u => u.Name.ToLower() == lowerName);
+            if (active && user is not null)
+                if (!user.Active)
+                    user = null;
             return user is not null;
         }
     }
 
+    /// <summary>
+    /// Delete a user from the file system
+    /// </summary>
+    /// <param name="user">The user to delete</param>
+    /// <returns>True if the user was deleted</returns>
     public bool DeleteUser(TUser user)
     {
         Start();
@@ -159,7 +188,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         return true;
     }
 
-    private static void CreateConfig(Document doc)
+    static void CreateConfig(Document doc)
     {
         var filer = doc.Force("security").Filer;
         var secret = filer.ReadString("secret");
@@ -171,7 +200,7 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
         Security.SecretKey(secret);
     }
 
-    private void CreateUsers(Document doc)
+    void CreateUsers(Document doc)
     {
         var nodes = doc.Force("security/users").Nodes;
         if (nodes.Count == 0)
@@ -183,14 +212,15 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
             var filer = node.Filer;
             var user = new TUser();
             ReadUser(filer, user);
-            if (!user.Active)
-                continue;
             Users.Add(user);
         }
     }
 
     protected bool Started { get; private set; }
 
+    /// <summary>
+    /// Start is called by the App class before it starts running
+    /// </summary>
     public virtual void Start()
     {
         if (Started)
@@ -211,13 +241,13 @@ public class FileUserSecurity<TUser> : IUserSecurity where TUser : BasicUser, ne
             doc.Save(fileName, true);
     }
 
-    public virtual void Stop()
-    {
-    }
+    /// <summary>
+    /// Stop is called by the App class before it stops running
+    /// </summary>
+    public virtual void Stop() => Started = false;
 
     public virtual void RestoreUser(HttpContext context)
     {
-        Start();
         context.User = BasicUser.Anonymous.Restore(context, this) as ClaimsPrincipal;
     }
 

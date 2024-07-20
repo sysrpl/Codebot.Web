@@ -9,34 +9,24 @@ using Microsoft.AspNetCore.Http;
 
 public class BasicUser : ClaimsPrincipal, IUser, IIdentity
 {
-    private static BasicUser anonymous;
+    static BasicUser anonymous;
 
     public static BasicUser Anonymous
     {
         get => anonymous;
         set
         {
-            if (anonymous is null)
-                anonymous = value;
+            if (anonymous is null) anonymous = value;
         }
     }
 
-    private readonly List<string> roles;
-    private string name;
+    readonly List<string> roles = [];
+    string name = string.Empty;
 
-    public BasicUser()
-    {
-        name = string.Empty;
-        Active = true;
-        Data = null;
-        Hash = string.Empty;
-        roles = new List<string>();
-    }
-
-    public bool Active { get; set; }
-    public object Data { get; set; }
+    public bool Active { get; set; } = true;
+    public object Data { get; set; } = null;
     public string Name { get => name; set { if (string.IsNullOrWhiteSpace(name)) name = value; } }
-    public string Hash { get; set; }
+    public string Hash { get; set; } = string.Empty;
 
     public string Roles
     {
@@ -47,7 +37,7 @@ public class BasicUser : ClaimsPrincipal, IUser, IIdentity
                 return;
             var values = string.IsNullOrWhiteSpace(value) ? "" : Regex.Replace(value, @"\s+", "").ToLower();
             roles.Clear();
-            roles.AddRange(values.Split(','));
+            roles.AddRange(values.Split(',',StringSplitOptions.RemoveEmptyEntries).Select(r => r.Trim()));
         }
     }
 
@@ -56,12 +46,7 @@ public class BasicUser : ClaimsPrincipal, IUser, IIdentity
         IUser user;
         lock (Anonymous)
             user = security.Users.FirstOrDefault(u => u.Name == name);
-        if (user is null)
-        {
-            Security.DeleteCredentials(context);
-            return false;
-        }
-        if (!user.Active || user.Hash != Security.ComputeHash(password))
+        if (user is null || !user.Active || user.Hash != Security.ComputeHash(password))
         {
             Security.DeleteCredentials(context);
             return false;
@@ -78,7 +63,7 @@ public class BasicUser : ClaimsPrincipal, IUser, IIdentity
         var name = Security.ReadUserName(context);
         lock (Anonymous)
             user = security.Users.FirstOrDefault(u => u.Name == name);
-        if (user is null)
+        if (user is null || !user.Active)
             return Anonymous;
         return Security.Match(context, user, salt) ? user : Anonymous;
     }

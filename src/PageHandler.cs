@@ -13,12 +13,7 @@ public class PageHandler : BasicHandler
     /// <summary>
     /// Allow the name of the action parameter to be redefined from its default value
     /// </summary>
-    protected static string Action { get; set; }
-
-    /// <summary>
-    /// Allow the user to redefine the action identifier
-    /// </summary>
-    static PageHandler() => Action = "action";
+    public virtual string Action { get => "action"; }
 
     /// <summary>
     /// The signature of a web action
@@ -28,7 +23,10 @@ public class PageHandler : BasicHandler
     /// <summary>
     /// Invoked when no default page is found
     /// </summary>
-    protected virtual void EmptyPage() { }
+    protected virtual void EmptyPage()
+    {
+        Console.WriteLine("EmptyPage");
+    }
 
     /// <summary>
     /// Check for a PageType derived attribute including DefaultPage

@@ -10,6 +10,7 @@ public interface IUser : IPrincipal
 	string Hash { get; }
 	bool IsAdmin { get; }
 	bool IsAnonymous { get; }
+
 	bool Login(HttpContext context, IUserSecurity security, string name, string password, string salt = "");
 	void Logout(HttpContext context, IUserSecurity security);
 	IUser Restore(HttpContext context, IUserSecurity security, string salt = "");

@@ -72,6 +72,7 @@ public class FileUserPage<TUser> : PageHandler where TUser : BasicUser
             {
                 var names = security
                     .Users
+                    .Where(user => user.Active)
                     .Select(user => user.Name)
                     .Where(name => name != User.Name)
                     .OrderBy(name => name);
@@ -83,6 +84,6 @@ public class FileUserPage<TUser> : PageHandler where TUser : BasicUser
     }
 }
 
-public class BasicUserPage : FileUserPage<BasicUser>
+public abstract class BasicUserPage : FileUserPage<BasicUser>
 {
 }
