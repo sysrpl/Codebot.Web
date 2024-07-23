@@ -23,10 +23,7 @@ public class PageHandler : BasicHandler
     /// <summary>
     /// Invoked when no default page is found
     /// </summary>
-    protected virtual void EmptyPage()
-    {
-        Console.WriteLine("EmptyPage");
-    }
+    protected virtual void EmptyPage() { }
 
     /// <summary>
     /// Check for a PageType derived attribute including DefaultPage
