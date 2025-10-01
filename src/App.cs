@@ -30,7 +30,7 @@ public static class App
     /// </summary>
     static App()
     {
-        DisableCORS = true;
+        DisableCors = true;
         handlerKey = new object();
         errorKey = new object();
         HandlerType = "home.dchc";
@@ -39,29 +39,24 @@ public static class App
     /// <summary>
     /// Read from a file and keep a cached copy of its content
     /// </summary>
-    public static string Read(string fileName) =>
-        FileCache.Read(fileName);
+    public static string Read(string fileName) => FileCache.Read(fileName);
 
     /// <summary>
     /// Write to a file
     /// </summary>
-    public static void Write(string fileName, string contents) =>
-        FileCache.Write(fileName, contents);
+    public static void Write(string fileName, string contents) => FileCache.Write(fileName, contents);
 
     /// <summary>
     /// The current HttpContext
     /// </summary>
-    public static HttpContext Context { get => accessor.HttpContext; }
+    public static HttpContext Context => accessor.HttpContext;
 
     /// <summary>
     /// Attach and processes a BasicHandler
     /// </summary>
     public static void Attach(HttpContext context, IHttpHandler handler)
     {
-        if (context.Items.ContainsKey(handlerKey))
-            context.Items[handlerKey] = handler;
-        else
-            context.Items.Add(handlerKey, handler);
+        context.Items[handlerKey] = handler;
         handler.ProcessRequest(context);
     }
 
@@ -70,30 +65,24 @@ public static class App
     /// </summary>
     private static void SetError(HttpContext context, object error)
     {
-        if (context.Items.ContainsKey(errorKey))
-            context.Items[errorKey] = error;
-        else
-            context.Items.Add(errorKey, error);
+        context.Items[errorKey] = error;
     }
 
     /// <summary>
     /// The last Error if any
     /// </summary>
     public static object GetLastError(HttpContext context) =>
-        context.Items.TryGetValue(errorKey, out object value) ? value : null;
+        context.Items.TryGetValue(errorKey, value: out var value) ? value : null;
 
     /// <summary>
     /// The current handler if any
     /// </summary>
-    public static BasicHandler CurrentHandler
-    {
-        get => Context.Items.TryGetValue(handlerKey, out object value) ? value as BasicHandler : null;
-    }
+    public static BasicHandler CurrentHandler => Context.Items.TryGetValue(handlerKey, out var value) ? value as BasicHandler : null;
 
     /// <summary>
     /// The current ip address of the client
     /// </summary>
-    public static string IpAddress { get => Context.Connection?.RemoteIpAddress?.ToString() ?? "UnknownIP"; }
+    public static string IpAddress => Context.Connection?.RemoteIpAddress?.ToString() ?? "UnknownIP";
 
     /// <summary>
     /// The current user agent of the client
@@ -112,17 +101,17 @@ public static class App
     /// <summary>
     /// The current requested path
     /// </summary>
-    public static string RequestPath { get => Context.Request.Path.Value; }
+    public static string RequestPath => Context.Request.Path.Value;
 
     /// <summary>
     /// The current response status code
     /// </summary>
-    public static int StatusCode { get => Context.Response.StatusCode; }
+    public static int StatusCode => Context.Response.StatusCode;
 
     /// <summary>
     /// IsLocal returns true if the client is from local area network
     /// </summary>
-    public static bool IsLocal { get => IpAddress.StartsWith("192.168.0.") || IpAddress.StartsWith("192.168.1."); }
+    public static bool IsLocal => IpAddress.StartsWith("192.168.0.") || IpAddress.StartsWith("192.168.1.");
 
     private static string CombinePath(string a, string b)
     {
@@ -139,7 +128,7 @@ public static class App
         return string.IsNullOrEmpty(b) ? a : Path.Combine(a, b);
     }
 
-    public static bool DisableCORS { get; set; }
+    public static bool DisableCors { get; set; }
 
     /// <summary>
     /// Map a path to application file path
@@ -160,7 +149,7 @@ public static class App
     {
         if (string.IsNullOrEmpty(path))
             path = context.Request.Path.Value;
-        path ??= String.Empty;
+        path ??= string.Empty;
         if (path.StartsWith("/"))
             return CombinePath(webroot, path);
         var root = context.Request.Path.Value;
@@ -230,7 +219,7 @@ public static class App
                 if (File.Exists(s))
                 {
                     var path = context.Request.Path.Value;
-                    if (!path.EndsWith('/'))
+                    if (path != null && !path.EndsWith('/'))
                     {
                         context.Response.Redirect(path + "/");
                         return;
@@ -276,7 +265,7 @@ public static class App
             .ConfigureServices(services =>
             {
                 services.AddHttpContextAccessor();
-                if (DisableCORS)
+                if (DisableCors)
                     services.AddCors(options =>
                     {
                         options.AddPolicy("AllowAll", builder =>
@@ -301,7 +290,7 @@ public static class App
                 accessor = app.ApplicationServices.GetRequiredService<IHttpContextAccessor>();
                 if (args.Contains("--debug") || args.Contains("-d"))
                     app.UseDeveloperExceptionPage();
-                if (DisableCORS)
+                if (DisableCors)
                     app.UseCors("AllowAll");
                 app.UseForwardedHeaders();
                 app.UseStaticFiles();

@@ -17,7 +17,7 @@ public static class DataConnect
 
     public static string LoadResourceText(Assembly assembly, string name)
     {
-        string resource = assembly.GetManifestResourceNames().First(item =>
+        var resource = assembly.GetManifestResourceNames().First(item =>
             item.EndsWith(name, StringComparison.Ordinal));
         using var s = assembly.GetManifestResourceStream(resource);
         using var reader = new StreamReader(s);
@@ -45,6 +45,8 @@ public static class DataConnect
             read(reader);
     }
 
+    static readonly object blocker = new();
+    
     public static int ExecuteNonQuery(string query, bool resource = false, DataParameters parameters = null, int timeout = DefaultTimeout)
     {
         if (resource)
@@ -58,8 +60,8 @@ public static class DataConnect
         {
             command.CommandText = query;
             DataParameters.Build(command, parameters);
-            return command.ExecuteNonQuery();
-
+            lock (blocker)
+                return command.ExecuteNonQuery();
         }
         var commands = query.Trim().Split(SplitCommands, StringSplitOptions.RemoveEmptyEntries);
         var result = 0;
@@ -70,7 +72,8 @@ public static class DataConnect
                 continue;
             command.CommandText = q;
             DataParameters.Build(command, parameters);
-            result += command.ExecuteNonQuery();
+            lock (blocker)
+                result += command.ExecuteNonQuery();
         }
         return result;
     }
