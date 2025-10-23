@@ -34,7 +34,14 @@ public static class App
         handlerKey = new object();
         errorKey = new object();
         HandlerType = "home.dchc";
+        CaptivePortal = false;
+        Domain = "localhost";
     }
+
+    /// <summary>
+    /// When CaptivePortal is true, all traffic is redirected to http://192.168.4.1
+    /// </summary>
+    public static bool CaptivePortal { get; set; }
 
     /// <summary>
     /// Read from a file and keep a cached copy of its content
@@ -187,6 +194,13 @@ public static class App
     public static event StaticEventHandler<ContextEventArgs> OnError;
     public static event StaticEventHandler<ContextEventArgs> OnEndRequest;
 
+
+    /// <summary>
+    /// Domain allows active ports to allow a specific domain passed
+    /// you want
+    /// </summary>
+    public static string Domain { get; set; }
+
     /// <summary>
     /// Look for a home.acdc and try to convert it into a BasicHandler,
     /// otherwise serve static files. We also reject attempts to read from
@@ -194,23 +208,37 @@ public static class App
     /// </summary>
     private static async Task ProcessRequest(HttpContext context, Func<Task> next)
     {
+        if (CaptivePortal)
+        {
+            string s = context.Request.Host.ToString();
+            var local = s is null || s == "localhost" || s.StartsWith("192.168.") || (s == Domain);
+            if (!local)
+            {
+                context.Response.Redirect("http://192.168.4.1", true);
+                return;
+            }
+        }
         Security?.RestoreUser(context);
+        var args = new ContextEventArgs(context);
         OnBeginRequest?.Invoke(new ContextEventArgs(context));
-        var requestHandled = false;
+        if (args.Handled)
+        {
+            OnEndRequest?.Invoke(args);
+            return;
+        }
         try
         {
-            IHttpHandler handler = null;
             if (OnProcessRequest is not null)
-            {
-                var args = new ContextEventArgs(context);
                 OnProcessRequest(args);
-                if (args.Handled)
-                    handler = args.Handler;
-            }
-            if (handler is not null)
+            if (args.Handled)
             {
-                requestHandled = true;
-                Attach(context, handler);
+                OnEndRequest?.Invoke(args);
+                return;
+            }
+            if (args.Handler is not null)
+            {
+                args.Handled = true;
+                Attach(context, args.Handler);
             }
             else
             {
@@ -228,7 +256,7 @@ public static class App
                     var t = Type.GetType(s);
                     if (t is not null && Activator.CreateInstance(t) is IHttpHandler h)
                     {
-                        requestHandled = true;
+                        args.Handled = true;
                         Attach(context, h);
                     }
                 }
@@ -237,20 +265,18 @@ public static class App
         catch (Exception e)
         {
             SetError(context, e);
-            requestHandled = true;
-            var errorHandled = false;
-            if (OnError is not null)
-            {
-                var args = new ContextEventArgs(context, e);
-                OnError.Invoke(args);
-                errorHandled = args.Handled;
-            }
-            if (!errorHandled)
+            args.Error = e;
+            args.Handled = false;
+            OnError?.Invoke(args);
+            if (!args.Handled)
+                OnEndRequest?.Invoke(args);
+            if (!args.Handled)
                 throw;
+            return;
         }
-        if (!requestHandled)
+        OnEndRequest?.Invoke(args);
+        if (!args.Handled)
             await next();
-        OnEndRequest?.Invoke(new ContextEventArgs(context));
     }
 
     /// <summary>

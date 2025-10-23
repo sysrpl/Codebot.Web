@@ -75,7 +75,7 @@ public abstract class BasicHandler : IHttpHandler
 		get
 		{
 			var address = IpAddress;
-			return address.StartsWith("192.168.0.") || address.StartsWith("192.168.1.");
+			return address.StartsWith("192.168.");
 		}
 	}
 
