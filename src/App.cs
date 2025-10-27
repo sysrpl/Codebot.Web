@@ -211,7 +211,8 @@ public static class App
         if (CaptivePortal)
         {
             string s = context.Request.Host.ToString();
-            var local = s is null || s == "localhost" || s.StartsWith("192.168.") || (s == Domain);
+            var local = s is null || s == "localhost" || s.StartsWith("127.0.") ||
+                s.StartsWith("192.168.") || (s == Domain);
             if (!local)
             {
                 context.Response.Redirect("http://192.168.4.1", true);
