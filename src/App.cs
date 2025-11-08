@@ -212,7 +212,7 @@ public static class App
         {
             string s = context.Request.Host.ToString();
             var local = s is null || s == "localhost" || s.StartsWith("127.0.") ||
-                s.StartsWith("192.168.") || (s == Domain);
+                s.StartsWith("192.168.") || s.Contains(Domain);
             if (!local)
             {
                 context.Response.Redirect("http://192.168.4.1", true);
@@ -221,7 +221,7 @@ public static class App
         }
         Security?.RestoreUser(context);
         var args = new ContextEventArgs(context);
-        OnBeginRequest?.Invoke(new ContextEventArgs(context));
+        OnBeginRequest?.Invoke(args);
         if (args.Handled)
         {
             OnEndRequest?.Invoke(args);
