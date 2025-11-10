@@ -9,6 +9,7 @@ public class ContextEventArgs
     public bool Handled { get; set; }
     public IHttpHandler Handler { get; set; }
     public Exception Error { get; set; }
+    public Task Task { get; set; }
 
     public ContextEventArgs(HttpContext context, Exception error = null)
     {
@@ -16,5 +17,6 @@ public class ContextEventArgs
         Error = error;
         Handler = null;
         Handled = false;
+        Task = null;
     }
 }

@@ -194,6 +194,20 @@ public static class App
     public static event StaticEventHandler<ContextEventArgs> OnError;
     public static event StaticEventHandler<ContextEventArgs> OnEndRequest;
 
+    static readonly Dictionary<string, ServiceEvent> events = [];
+
+    /// <summary>
+    /// Registers an endpoint to a specific service event
+    /// </summary>
+    /// <param name="endpoint">The endpoint of the request path to intercept events</param>
+    public static void RegisterEvent(string endpoint) => events.Add(endpoint, new ServiceEvent());
+
+    /// <summary>
+    /// Find a service event at a specific endpoint
+    /// </summary>
+    /// <param name="endpoint">The endpoint previously registered</param>
+    /// <returns></returns>
+    public static ServiceEvent FindEvent(string endpoint) => events.ContainsKey(endpoint) ? events[endpoint] : null;
 
     /// <summary>
     /// Domain allows active ports to allow a specific domain passed
@@ -224,7 +238,10 @@ public static class App
         OnBeginRequest?.Invoke(args);
         if (args.Handled)
         {
-            OnEndRequest?.Invoke(args);
+            if (args.Task != null)
+                await args.Task;
+            else
+                OnEndRequest?.Invoke(args);
             return;
         }
         try
@@ -233,7 +250,10 @@ public static class App
                 OnProcessRequest(args);
             if (args.Handled)
             {
-                OnEndRequest?.Invoke(args);
+                if (args.Task != null)
+                    await args.Task;
+                else
+                    OnEndRequest?.Invoke(args);
                 return;
             }
             if (args.Handler is not null)
@@ -277,7 +297,13 @@ public static class App
         }
         OnEndRequest?.Invoke(args);
         if (!args.Handled)
-            await next();
+        {
+            var e = FindEvent(context.Request.Path);
+            if (e != null)
+                await e.AddRequest(context);
+            else
+                await next();
+        }
     }
 
     /// <summary>
