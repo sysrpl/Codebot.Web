@@ -26,31 +26,50 @@ namespace Codebot.Web;
 /// </example>
 public class ServiceEvent
 {
-    private readonly List<HttpResponse> connections = new();
-    private readonly object mutex = new();
-
-    /// <summary>
-    /// Do not use
-    /// </summary>
-    public async Task AddRequest(HttpContext context)
+    internal class Connection
     {
-        context.Response.Headers.Append("Content-Type", "text/event-stream");
-        context.Response.Headers.Append("Cache-Control", "no-cache");
-        context.Response.Headers.Append("Connection", "keep-alive");
-        lock (mutex)
-            connections.Add(context.Response);
+        internal HttpResponse Response { get; }
+        internal SemaphoreSlim WriteLock { get; } = new(1, 1);
+        internal Connection(HttpResponse response) => Response = response;
+    }
+
+    private readonly List<Connection> connections = [];
+
+    internal async Task AddRequest(HttpContext context)
+    {
+        context.Response.ContentType = "text/event-stream";
+        context.Response.Headers.CacheControl = "no-cache";
+        context.Response.Headers.Connection = "keep-alive";
+        var c = new Connection(context.Response);
+        lock (this)
+            connections.Add(c);
+        var cancel = context.RequestAborted;
+        await c.Response.Body.FlushAsync(cancel);
         try
         {
-            await Task.Delay(-1, context.RequestAborted);
+            while (!cancel.IsCancellationRequested)
+            {
+                await c.WriteLock.WaitAsync(cancel);
+                try
+                {
+                    await c.Response.WriteAsync(":\n\n", cancel);
+                    await c.Response.Body.FlushAsync(cancel);
+                }
+                finally
+                {
+                    c.WriteLock.Release();
+                }
+                await Task.Delay(TimeSpan.FromSeconds(30), cancel);
+            }
         }
-        catch (TaskCanceledException)
+        catch
         {
-            // Client disconnected
+            // swallow all exceptions (disconnects, etc.)
         }
         finally
         {
-            lock (mutex)
-                connections.Remove(context.Response);
+            lock (this)
+                connections.Remove(c);
         }
     }
 
@@ -60,23 +79,34 @@ public class ServiceEvent
     /// <param name="message">The data to push</param>
     public async Task Broadcast(string message)
     {
+        if (string.IsNullOrEmpty(message))
+            message = string.Empty;
         message = message.Replace("\n", "\\n").Replace("\r", "\\r");
         var s = $"data:{message}\n\n";
-        List<HttpResponse> connections;
-        lock (mutex)
-            connections = this.connections.ToList();
-        foreach (var c in connections)
+        List<Connection> snapshot;
+        lock (this)
+            snapshot = connections.ToList();
+        var tasks = snapshot.Select(async c =>
         {
             try
             {
-                await c.WriteAsync(s);
-                await c.Body.FlushAsync();
+                await c.WriteLock.WaitAsync();
+                try
+                {
+                    await c.Response.WriteAsync(s);
+                    await c.Response.Body.FlushAsync();
+                }
+                finally
+                {
+                    c.WriteLock.Release();
+                }
             }
             catch
             {
-                lock (mutex)
-                    this.connections.Remove(c);
+                lock (this)
+                    connections.Remove(c);
             }
-        }
+        });
+        await Task.WhenAll(tasks);
     }
 }
