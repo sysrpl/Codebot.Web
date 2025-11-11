@@ -46,6 +46,7 @@ public class ServiceEvent
         lock (mutex)
             connections.Add(c);
         var cancel = context.RequestAborted;
+        await c.Response.WriteAsync(":\n\n", cancel);
         await c.Response.Body.FlushAsync(cancel);
         try
         {
@@ -78,16 +79,22 @@ public class ServiceEvent
     /// <summary>
     /// Broadcast pushes text data to every client that is connected
     /// </summary>
-    /// <param name="message">The data to push</param>
-    public async Task Broadcast(string message)
+    /// <param name="json">The valid json string data to push</param>
+    public async Task Broadcast(string json)
     {
-        if (string.IsNullOrEmpty(message))
-            message = string.Empty;
-        message = message.Replace("\n", "\\n").Replace("\r", "\\r");
+        try
+        {
+            dynamic obj = JsonSerializer.Deserialize<dynamic>(json);
+            json = JsonSerializer.Serialize(obj);
+        }
+        catch
+        {
+            return;
+        }
         List<Connection> snapshot;
         lock (mutex)
             snapshot = connections.ToList();
-        var s = $"data:{message}\n\n";
+        var s = $"data:{json}\n\n";
         var tasks = snapshot.Select(async c =>
         {
             try
