@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 
 namespace Codebot.Web;
@@ -34,6 +35,7 @@ public class ServiceEvent
     }
 
     private readonly List<Connection> connections = [];
+    private readonly object mutex = new();
 
     internal async Task AddRequest(HttpContext context)
     {
@@ -41,7 +43,7 @@ public class ServiceEvent
         context.Response.Headers.CacheControl = "no-cache";
         context.Response.Headers.Connection = "keep-alive";
         var c = new Connection(context.Response);
-        lock (this)
+        lock (mutex)
             connections.Add(c);
         var cancel = context.RequestAborted;
         await c.Response.Body.FlushAsync(cancel);
@@ -68,7 +70,7 @@ public class ServiceEvent
         }
         finally
         {
-            lock (this)
+            lock (mutex)
                 connections.Remove(c);
         }
     }
@@ -82,10 +84,10 @@ public class ServiceEvent
         if (string.IsNullOrEmpty(message))
             message = string.Empty;
         message = message.Replace("\n", "\\n").Replace("\r", "\\r");
-        var s = $"data:{message}\n\n";
         List<Connection> snapshot;
-        lock (this)
+        lock (mutex)
             snapshot = connections.ToList();
+        var s = $"data:{message}\n\n";
         var tasks = snapshot.Select(async c =>
         {
             try
@@ -103,7 +105,7 @@ public class ServiceEvent
             }
             catch
             {
-                lock (this)
+                lock (mutex)
                     connections.Remove(c);
             }
         });
