@@ -37,7 +37,7 @@ public class ServiceEvent
     readonly object mutex = new();
     long connects = 0;
     long disconnects = 0;
-    string name = "";
+    readonly string name = "";
 
     public ServiceEvent(string endpoint)
     {
