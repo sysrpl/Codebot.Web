@@ -12,17 +12,16 @@ namespace Codebot.Web;
 ///
 ///     App.RegisterEvent("/movies");
 ///
-/// Send messages to the clients by wwriting
+/// Send messages to the clients by writing
 ///
-///     App.FindEvent("/movies").Broadcast("A new movie was added!")
+///     App.FindEvent("/movies").Broadcast("'A new movie was added!'");
 ///
 /// You can access via javascript like so:
 ///
 ///     const movieEvents = new EventSource('/movies');
 ///     movieEvents.onmessage = (e: MessageEvent) => {
-///         let s = e.data;
-///         s = s.replace(/\\n/g, "\n").replace(/\\r/g, "\r");
-///         console.log(s);
+///         let obj = JSON.parse(e.data);
+///         console.log(obj);
 ///     };
 /// </example>
 public class ServiceEvent
@@ -34,8 +33,16 @@ public class ServiceEvent
         internal Connection(HttpResponse response) => Response = response;
     }
 
-    private readonly List<Connection> connections = [];
-    private readonly object mutex = new();
+    readonly List<Connection> connections = [];
+    readonly object mutex = new();
+    long connects = 0;
+    long disconnects = 0;
+    string name = "";
+
+    public ServiceEvent(string endpoint)
+    {
+        name = string.IsNullOrWhiteSpace(endpoint) ? "unknown" : endpoint.Trim();
+    }
 
     internal async Task AddRequest(HttpContext context)
     {
@@ -44,12 +51,14 @@ public class ServiceEvent
         context.Response.Headers.Connection = "keep-alive";
         var c = new Connection(context.Response);
         lock (mutex)
+        {
             connections.Add(c);
-        var cancel = context.RequestAborted;
-        await c.Response.WriteAsync(":\n\n", cancel);
-        await c.Response.Body.FlushAsync(cancel);
+            connects++;
+            Console.WriteLine($"service {name} add (addrequest): connects {connects} | disconnects {disconnects} | actual {connections.Count}");
+        }
         try
         {
+            var cancel = context.RequestAborted;
             while (!cancel.IsCancellationRequested)
             {
                 await c.WriteLock.WaitAsync(cancel);
@@ -72,7 +81,14 @@ public class ServiceEvent
         finally
         {
             lock (mutex)
-                connections.Remove(c);
+            {
+                if (connections.Contains(c))
+                {
+                    connections.Remove(c);
+                    disconnects++;
+                    Console.WriteLine($"service {name} remove (addrequest): connects {connects} | disconnects {disconnects} | actual {connections.Count}");
+                }
+            }
         }
     }
 
@@ -80,11 +96,13 @@ public class ServiceEvent
     /// Broadcast pushes text data to every client that is connected
     /// </summary>
     /// <param name="json">The valid json string data to push</param>
+    /// <remarks>Broadcast requires a json compatible string or your message
+    /// will be ignored</remarks>
     public async Task Broadcast(string json)
     {
         try
         {
-            dynamic obj = JsonSerializer.Deserialize<dynamic>(json);
+            var obj = JsonSerializer.Deserialize<JsonElement>(json);
             json = JsonSerializer.Serialize(obj);
         }
         catch
@@ -112,8 +130,12 @@ public class ServiceEvent
             }
             catch
             {
-                lock (mutex)
+                if (connections.Contains(c))
+                {
                     connections.Remove(c);
+                    disconnects++;
+                    Console.WriteLine($"service {name} remove (broadcast): connects {connects} | disconnects {disconnects} | actual {connections.Count}");
+                }
             }
         });
         await Task.WhenAll(tasks);

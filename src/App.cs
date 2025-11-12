@@ -200,14 +200,16 @@ public static class App
     /// Registers an endpoint to a specific service event
     /// </summary>
     /// <param name="endpoint">The endpoint of the request path to intercept events</param>
-    public static void RegisterEvent(string endpoint) => events.Add(endpoint, new ServiceEvent());
+    public static void RegisterEvent(string endpoint) =>
+        events.Add(endpoint, new ServiceEvent(endpoint));
 
     /// <summary>
     /// Find a service event at a specific endpoint
     /// </summary>
     /// <param name="endpoint">The endpoint previously registered</param>
     /// <returns></returns>
-    public static ServiceEvent FindEvent(string endpoint) => events.ContainsKey(endpoint) ? events[endpoint] : null;
+    public static ServiceEvent FindEvent(string endpoint) =>
+        events.ContainsKey(endpoint) ? events[endpoint] : null;
 
     /// <summary>
     /// Domain allows active ports to allow a specific domain passed
@@ -307,7 +309,7 @@ public static class App
     }
 
     /// <summary>
-    /// This is the main entry point for this framework
+    /// The main entry point for this framework
     /// </summary>
     public static void Run(string[] args)
     {
