@@ -200,14 +200,19 @@ public static class App
     /// Registers an endpoint to a specific service event
     /// </summary>
     /// <param name="endpoint">The endpoint of the request path to intercept events</param>
-    public static void RegisterEvent(string endpoint) =>
-        events.Add(endpoint, new ServiceEvent(endpoint));
+    /// <returns>The newly registered ServiceEvent</returns>
+    public static ServiceEvent RegisterEvent(string endpoint)
+    {
+        var service = new ServiceEvent(endpoint);
+        events.Add(endpoint, service);
+        return service;
+    }
 
     /// <summary>
     /// Find a service event at a specific endpoint
     /// </summary>
     /// <param name="endpoint">The endpoint previously registered</param>
-    /// <returns></returns>
+    /// <returns>The existings ServiceEvent if found or null</returns>
     public static ServiceEvent FindEvent(string endpoint) =>
         events.ContainsKey(endpoint) ? events[endpoint] : null;
 

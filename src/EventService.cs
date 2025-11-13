@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 
 namespace Codebot.Web;
@@ -31,6 +32,14 @@ public class ServiceEvent
         internal HttpResponse Response { get; }
         internal SemaphoreSlim WriteLock { get; } = new(1, 1);
         internal Connection(HttpResponse response) => Response = response;
+    }
+
+    internal struct Message
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+        [JsonPropertyName("payload")]
+        public JsonElement Payload { get; set; }
     }
 
     readonly List<Connection> connections = [];
@@ -93,17 +102,64 @@ public class ServiceEvent
     }
 
     /// <summary>
-    /// Broadcast pushes text data to every client that is connected
+    /// Broadcast pushes a message with a json payload to every client that is connected
     /// </summary>
-    /// <param name="json">The valid json string data to push</param>
-    /// <remarks>Broadcast requires a json compatible string or your message
-    /// will be ignored</remarks>
-    public async Task Broadcast(string json)
+    /// <param name="json">The valid json payload push to the client</param>
+    /// <remarks>Broadcast requires a json compatible payload or your message
+    /// will not be sent</remarks>
+    /*public async Task Broadcast(string json)
     {
         try
         {
-            var obj = JsonSerializer.Deserialize<JsonElement>(json);
-            json = JsonSerializer.Serialize(obj);
+            var message = JsonSerializer.Deserialize<JsonElement>(json);
+            json = JsonSerializer.Serialize(message);
+        }
+        catch
+        {
+            return;
+        }
+        List<Connection> snapshot;
+        lock (mutex)
+            snapshot = connections.ToList();
+        var s = $"data:{json}\n\n";
+        var tasks = snapshot.Select(async c =>
+        {
+            try
+            {
+                await c.WriteLock.WaitAsync();
+                try
+                {
+                    await c.Response.WriteAsync(s);
+                    await c.Response.Body.FlushAsync();
+                }
+                finally
+                {
+                    c.WriteLock.Release();
+                }
+            }
+            catch
+            {
+                if (connections.Contains(c))
+                {
+                    connections.Remove(c);
+                    disconnects++;
+                    Console.WriteLine($"service {name} remove (broadcast): connects {connects} | disconnects {disconnects} | actual {connections.Count}");
+                }
+            }
+        });
+        await Task.WhenAll(tasks);
+    }*/
+
+    public async Task Broadcast(string name, string json)
+    {
+        try
+        {
+            var message = new Message()
+            {
+                Name = name,
+                Payload = JsonSerializer.Deserialize<JsonElement>(json)
+            };
+            json = JsonSerializer.Serialize(message);
         }
         catch
         {
