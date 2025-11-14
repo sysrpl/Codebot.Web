@@ -53,7 +53,7 @@ public class ServiceEvent
         name = string.IsNullOrWhiteSpace(endpoint) ? "unknown" : endpoint.Trim();
     }
 
-    internal async Task AddRequest(HttpContext context)
+    internal async Task AddRequestAsync(HttpContext context)
     {
         context.Response.ContentType = "text/event-stream";
         context.Response.Headers.CacheControl = "no-cache";
@@ -101,56 +101,9 @@ public class ServiceEvent
         }
     }
 
-    /// <summary>
-    /// Broadcast pushes a message with a json payload to every client that is connected
-    /// </summary>
-    /// <param name="json">The valid json payload push to the client</param>
-    /// <remarks>Broadcast requires a json compatible payload or your message
-    /// will not be sent</remarks>
-    /*public async Task Broadcast(string json)
-    {
-        try
-        {
-            var message = JsonSerializer.Deserialize<JsonElement>(json);
-            json = JsonSerializer.Serialize(message);
-        }
-        catch
-        {
-            return;
-        }
-        List<Connection> snapshot;
-        lock (mutex)
-            snapshot = connections.ToList();
-        var s = $"data:{json}\n\n";
-        var tasks = snapshot.Select(async c =>
-        {
-            try
-            {
-                await c.WriteLock.WaitAsync();
-                try
-                {
-                    await c.Response.WriteAsync(s);
-                    await c.Response.Body.FlushAsync();
-                }
-                finally
-                {
-                    c.WriteLock.Release();
-                }
-            }
-            catch
-            {
-                if (connections.Contains(c))
-                {
-                    connections.Remove(c);
-                    disconnects++;
-                    Console.WriteLine($"service {name} remove (broadcast): connects {connects} | disconnects {disconnects} | actual {connections.Count}");
-                }
-            }
-        });
-        await Task.WhenAll(tasks);
-    }*/
+    public void Broadcast(string name, string json) => _ = BroadcastAsync(name, json);
 
-    public async Task Broadcast(string name, string json)
+    public async Task BroadcastAsync(string name, string json)
     {
         try
         {

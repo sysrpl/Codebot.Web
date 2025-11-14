@@ -307,7 +307,7 @@ public static class App
         {
             var e = FindEvent(context.Request.Path);
             if (e != null)
-                await e.AddRequest(context);
+                await e.AddRequestAsync(context);
             else
                 await next();
         }
