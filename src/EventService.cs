@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Codebot.Web;
 
@@ -67,7 +69,9 @@ public class ServiceEvent
         }
         try
         {
-            var cancel = context.RequestAborted;
+            var lifetime = context.RequestServices.GetRequiredService<IHostApplicationLifetime>();
+            using var combined = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, lifetime.ApplicationStopping);
+            var cancel = combined.Token;
             while (!cancel.IsCancellationRequested)
             {
                 await c.WriteLock.WaitAsync(cancel);

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 
@@ -579,7 +580,7 @@ public abstract class BasicHandler : IHttpHandler
 			return string.IsNullOrWhiteSpace(result) ? null : result;
 		}
 
-		void Transmit(string filePath, long fileLength, long offset, long length)
+		async Task Transmit(string filePath, long fileLength, long offset, long length)
 		{
 			var remainingBytes = fileLength - offset;
 			var actualLength = length > 0 ? Math.Min(length, remainingBytes) : remainingBytes;
@@ -590,8 +591,8 @@ public abstract class BasicHandler : IHttpHandler
 			int sent = 0;
 			do
 			{
-				sent = stream.ReadAsync(buffer, 0, (int)actualLength).Result;
-				Response.Body.WriteAsync(buffer).AsTask().Wait();
+				sent = await stream.ReadAsync(buffer, 0, (int)actualLength);
+				await Response.Body.WriteAsync(buffer);
 				actualLength -= sent;
 			}
 			while (actualLength > 0);
@@ -637,7 +638,7 @@ public abstract class BasicHandler : IHttpHandler
 		Response.Headers["Cache-Control"] = "public, max-age=600";
 		Response.Headers["Expires"] = DateTime.UtcNow.AddMinutes(10).ToString("R");
 		Response.Headers["ETag"] = etag;
-		Transmit(fileName, fileInfo.Length, startIndex, responseLength);
+		Transmit(fileName, fileInfo.Length, startIndex, responseLength).Wait();
 		return responseLength;
 		#pragma warning restore ASP0015 // Suggest using IHeaderDictionary properties
 	}
