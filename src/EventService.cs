@@ -1,8 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace Codebot.Web;
 
@@ -69,11 +67,11 @@ public class ServiceEvent
         }
         try
         {
-            var lifetime = context.RequestServices.GetRequiredService<IHostApplicationLifetime>();
-            using var combined = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, lifetime.ApplicationStopping);
+            using var combined = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, App.StopToken);
             var cancel = combined.Token;
             while (!cancel.IsCancellationRequested)
             {
+                // Send a heartbeat every 30 secords to each client while they are connected
                 await c.WriteLock.WaitAsync(cancel);
                 try
                 {

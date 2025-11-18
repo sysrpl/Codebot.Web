@@ -194,6 +194,11 @@ public static class App
     public static event StaticEventHandler<ContextEventArgs> OnError;
     public static event StaticEventHandler<ContextEventArgs> OnEndRequest;
 
+    /// <summary>
+    /// StopToken can be used to detect requests to shutdown the application
+    /// </summary>
+    public static CancellationToken StopToken { get; private set; }
+
     static readonly Dictionary<string, ServiceEvent> events = [];
 
     /// <summary>
@@ -355,6 +360,8 @@ public static class App
                 app.UseForwardedHeaders();
                 app.UseStaticFiles();
                 app.Use(ProcessRequest);
+                var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
+                StopToken = lifetime.ApplicationStopping;
                 Security?.Start();
                 OnStart?.Invoke(EventArgs.Empty);
             });
