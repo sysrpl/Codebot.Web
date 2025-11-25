@@ -282,6 +282,11 @@ public abstract class BasicHandler : IHttpHandler
 	public void Write(string s) => Context.Response.WriteAsync(s);
 
 	/// <summary>
+	/// Writes text to the response
+	/// </summary>
+	public void Write(bool b) => Context.Response.WriteAsync(b.ToString().ToLower());
+
+	/// <summary>
 	/// Writes an array of items to the response
 	/// </summary>
 	public void Write(string s, params object[] args) => Write(string.Format(s, args));

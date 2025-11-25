@@ -118,6 +118,7 @@ public class ServiceEvent
         }
         catch
         {
+            Console.WriteLine("broadcast invlaid json: " + json);
             return;
         }
         List<Connection> snapshot;
